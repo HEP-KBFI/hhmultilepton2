@@ -24,7 +24,7 @@ jobs:
         run: |
           mkdir -p .setups
           # Create a default setup file
-          cat > .setups/default.sh << 'EOF'
+          cat > .setups/githubtest.sh << 'EOF'
           export CF_CERN_USER="github"
           export CF_DATA="$PWD/data"
           export CF_SOFTWARE_BASE="$PWD/columnflow_venv/software"
