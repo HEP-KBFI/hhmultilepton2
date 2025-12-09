@@ -161,12 +161,12 @@ setup_multilepton() {
     #
     # additional common cf setup steps
     #
-    if ! (micromamba env export | grep -q correctionlib); then
+    if ! ($CF_MAMBA_BASE env export | grep -q correctionlib); then
     echo correctionlib misisng, installing...
-    micromamba install \
+    $CF_MAMBA_BASE install \
         correctionlib==2.7.0 \
         || return "$?"
-    micromamba clean --yes --all
+    $CF_MAMBA_BASE clean --yes --all
     fi 
     cf_setup_post_install || return "$?"
 
