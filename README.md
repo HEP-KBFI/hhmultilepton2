@@ -30,7 +30,7 @@ For further questions please, contact t\*\*\*\*.l\*\*\*\*@no-spam-cern.ch.
 ```shell
 # 1. clone the project
 git clone --recursive git@github.com:HEP-KBFI/hhmultilepton2.git
-cd hhmultilepton
+cd hhmultilepton2
 
 # 2. get a voms token
 voms-proxy-init -voms cms -rfc -valid 196:00
