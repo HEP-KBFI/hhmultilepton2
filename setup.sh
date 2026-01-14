@@ -161,7 +161,11 @@ setup_multilepton() {
     #
     # additional common cf setup steps
     #
-    if [[ "${CF_SKIP_SETUP}" == "true" ]]; then ## inverted because CI and columnflow dependecy
+    IS_CI=${CI:-false}
+    [ -n "${GITHUB_ACTIONS}" ] && IS_CI=true
+    echo 'heloooooooooo' $IS_CI
+
+    if [[ "${CF_SKIP_SETUP}" == "true" ]]; then ## inverted because CI and columnflow dependency
         echo "[setup] Performing full environment setup"
         if ! ($CF_MAMBA_BASE env export | grep -q correctionlib); then
             echo correctionlib misisng, installing...

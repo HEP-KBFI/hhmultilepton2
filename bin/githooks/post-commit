@@ -4,11 +4,11 @@
 
 action() {
     # just lint
-    if [ ! -d "${HBT_BASE}" ]; then
-        >&2 echo "HBT_BASE not setup, skip linting"
-    elif [ "${HBT_SKIP_POST_COMMIT}" != "1" ]; then
+    if [ ! -d "${MULTILEPTON_BASE}" ]; then
+        >&2 echo "MULTILEPTON_BASE not setup, skip linting"
+    elif [ "${MULTILEPTON_SKIP_POST_COMMIT}" != "1" ]; then
         echo "post-commit linting ..."
-        bash "${HBT_BASE}/tests/run_linting"
+        bash "${MULTILEPTON_BASE}/tests/run_linting"
         echo
     fi
 
