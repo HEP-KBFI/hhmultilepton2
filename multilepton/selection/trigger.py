@@ -30,7 +30,6 @@ def trigger_selection(
     """
     HLT trigger path selection.
     """
-    
     # Trigger disabled
     if getattr(self.config_inst.x, "disable_triggers", False):
         n_events = len(events)
