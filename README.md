@@ -3,7 +3,7 @@
 **Table of contents**
 - [Introduction](#introduction)
 - [Installation (first time)](#first-time-setup)
-- [Submodules Management Guide (Columnflow and cmsdb)](Submodules-management-guide)
+- [Submodules Management Guide (Columnflow and cmsdb)](submodules-management-guide-columnflow-and-cmsdb)
 - [Usage](#usage)
 - [Useful links](#useful-links)
 - [Contributors](#contributors)
@@ -62,11 +62,8 @@ When you run the command, the setup script will guide you interactively, prompti
 <img width="1336" height="506" alt="image" src="img.png" />
 
 
-Code can now be run but first storage locations for the tasks outputs should be checked as configured [here](https://github.com/HEP-KBFI/hhmultilepton2/blob/main/law_outputs.cfg#L5). Currently outputs point to the user store of the `T2_EE_Estonia on manivald` so that outputs are also accessible remotely, but we will likely adapt this over time depending on the output.
-I.e large outputs available in a remote reachable location, smaller ones on local stores. Larger ones likely also split by user/cluster so that central versions can be reused.
-
-**For development on lxplus "we strongly" advise to change `wlcg_fs_manivald` to `wlcg_fs_cernbox` in the beginning.**
-
+Code can now be run but first storage locations for the tasks outputs should be checked as configured [here](https://github.com/kjaffel/hhmultilepton2/blob/updateCF_fixempty_parquetsBug750/.setups/template.sh#L21). Currently outputs point to the user store of the `T2_EE_Estonia on manivald` so that outputs are also accessible remotely, but we will likely adapt this over time depending on the output.
+I.e large outputs available in a remote reachable location, smaller ones on local stores. Larger ones likely also split by user/cluster so that central versions can be reused. Can be configuered [here](https://github.com/kjaffel/hhmultilepton2/blob/updateCF_fixempty_parquetsBug750/law_outputs.cfg#L5).
 
 ## Submodules Management Guide (Columnflow and cmsdb)
 
@@ -151,7 +148,7 @@ git submodule foreach --recursive 'git status'
 
 ### Troubleshooting
 
-### If Stash Conflicts Occur
+#### - If Stash Conflicts Occur
 ```bash
 # List all stashes
 git stash list
@@ -161,7 +158,7 @@ git submodule foreach --recursive 'echo "=== $path ===" && git stash list'
 git stash apply stash@{0}
 ```
 
-### Check Submodule Information
+#### - Check Submodule Information
 ```bash
 # Show all submodule status
 git submodule status --recursive
