@@ -3,6 +3,7 @@
 **Table of contents**
 - [Introduction](#introduction)
 - [Installation (first time)](#first-time-setup)
+- [Submodules Management Guide (Columnflow and cmsdb)](Submodules-management-guide)
 - [Usage](#usage)
 - [Useful links](#useful-links)
 - [Contributors](#contributors)
@@ -65,6 +66,112 @@ Code can now be run but first storage locations for the tasks outputs should be 
 I.e large outputs available in a remote reachable location, smaller ones on local stores. Larger ones likely also split by user/cluster so that central versions can be reused.
 
 **For development on lxplus "we strongly" advise to change `wlcg_fs_manivald` to `wlcg_fs_cernbox` in the beginning.**
+
+
+## Submodules Management Guide (Columnflow and cmsdb)
+
+This directory contains submodules for the analysis framework, including `columnflow` and `cmsdb`. Note that `columnflow` itself has nested submodules (`law` and `order`).
+```
+modules/
+├── columnflow/         # Main analysis framework
+│   ├── law/            # Nested submodule
+│   └── order/          # Nested submodule
+└── cmsdb/              # CMS database utilities
+```
+
+Complete Update Procedure:
+
+### 1️⃣ Stash Local Changes (Preserve WIP)
+
+First, save all your work-in-progress changes across all submodules:
+
+```bash
+cd hhmultilepton2/modules
+
+# Stash parent repository changes
+git stash push -m "WIP: parent repository"
+
+# Stash all submodule changes recursively (including nested submodules)
+git submodule foreach --recursive 'git stash push -m "WIP: $(basename $PWD)" || true'
+
+# Verify everything is clean
+git status
+git submodule foreach --recursive 'git status'
+```
+
+### 2️⃣ Update All Submodules
+
+Fetch and update all submodules to their latest upstream versions:
+
+```bash
+# Update all submodules recursively
+git submodule update --remote --recursive
+
+# Verify updates
+git submodule status --recursive
+```
+
+**Note:** This updates submodules based on the branch specified in `.gitmodules`. To update a specific submodule to a different branch/tag:
+```bash
+cd columnflow
+git checkout [branch/tag/commit]
+cd ..
+```
+
+### 3️⃣ Commit Updated Submodule Pointers
+
+Commit the updated submodule references in the parent repository:
+
+```bash
+# Add updated submodule pointers
+git add columnflow cmsdb
+
+# Commit the update
+git commit -m "Update submodules: columnflow, cmsdb (including nested law and order)"
+
+# Push to your branch
+git push origin <your-branch-name>
+```
+
+### 4️⃣ Restore Your Local Changes
+
+Bring back your stashed work:
+
+```bash
+# Restore parent repository changes
+git stash pop
+
+# Restore all submodule changes recursively
+git submodule foreach --recursive 'git stash pop || true'
+
+# Verify restoration
+git status
+git submodule foreach --recursive 'git status'
+```
+
+### Troubleshooting
+
+### If Stash Conflicts Occur
+```bash
+# List all stashes
+git stash list
+git submodule foreach --recursive 'echo "=== $path ===" && git stash list'
+
+# Apply specific stash (skip conflicts)
+git stash apply stash@{0}
+```
+
+### Check Submodule Information
+```bash
+# Show all submodule status
+git submodule status --recursive
+
+# Show submodule URLs
+cat .gitmodules
+
+# Show specific submodule info
+git config -f .gitmodules --get-regexp submodule
+```
 
 ## Usage 
 
