@@ -606,7 +606,7 @@ def lepton_selection(
         # 2lss
         "c2e0or1tau", "cemu0or1tau", "c2mu0or1tau",
     ]
-    
+
     channels = {
         name: self.config_inst.get_channel(name)
         for name in channel_names
@@ -727,21 +727,20 @@ def lepton_selection(
     single_e_tids = [tid for tid, tags in _tid_tags.items() if "single_e" in tags]
     double_e_tids = [tid for tid, tags in _tid_tags.items() if "double_e" in tags]
     triple_e_tids = [tid for tid, tags in _tid_tags.items() if "triple_e" in tags]
-    
+
     single_mu_tids = [tid for tid, tags in _tid_tags.items() if "single_mu" in tags]
     double_mu_tids = [tid for tid, tags in _tid_tags.items() if "double_mu" in tags]
     triple_mu_tids = [tid for tid, tags in _tid_tags.items() if "triple_mu" in tags]
-    
+
     double_emu_tids = [tid for tid, tags in _tid_tags.items() if "double_emu" in tags]
     triple_eemu_tids = [tid for tid, tags in _tid_tags.items() if "triple_eemu" in tags]
     triple_emumu_tids = [tid for tid, tags in _tid_tags.items() if "triple_emumu" in tags]
-    
-    cross_tau_tau_any = [tid for tid, tags in _tid_tags.items() if {"cross_tau_tau", "cross_tau_tau_jet", "cross_tau_tau_vbf"} & tags]
+
+    cross_tau_tau_any = [tid for tid, tags in _tid_tags.items() if {"cross_tau_tau", "cross_tau_tau_jet", "cross_tau_tau_vbf"} & tags]  # noqa: E501
     cross_e_tau = [tid for tid, tags in _tid_tags.items() if "cross_e_tau" in tags]
     cross_mu_tau = [tid for tid, tags in _tid_tags.items() if "cross_mu_tau" in tags]
-    
-    # all_tids = list(_tid_tags.keys())
 
+    # all_tids = list(_tid_tags.keys())
     _trig_cache.update({
         # set of events that have triggered at least one single_e trigger
         ("fam", "e_trig_any"): e_trig_any,
@@ -927,7 +926,7 @@ def lepton_selection(
             e_ctrl_bdt = _trig_cache[(tid, "e_ctrl_bdt")]
             e_veto_bdt = _trig_cache[(tid, "e_veto_bdt")]
             e_mask_bdt = _trig_cache[(tid, "e_mask_bdt")]
-            
+
             mu_mask = _trig_cache[(tid, "mu")]
             mu_ctrl = _trig_cache[(tid, "mu_ctrl")]
             mu_veto = _trig_cache[(tid, "mu_veto")]
@@ -935,10 +934,10 @@ def lepton_selection(
             mu_ctrl_bdt = _trig_cache[(tid, "mu_ctrl_bdt")]
             mu_veto_bdt = _trig_cache[(tid, "mu_veto_bdt")]
             mu_mask_bdt = _trig_cache[(tid, "mu_mask_bdt")]
-            
+
             tau_mask = _trig_cache[(tid, "tau_mask")]
             tau_iso_mask = _trig_cache[(tid, "tau_iso_mask")]
-            
+
             fired = _trig_cache[(tid, "fired")]
 
             # channel dependent deeptau cuts vs e and mu, taumask has vs jet vvloose
