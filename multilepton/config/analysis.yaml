@@ -323,16 +323,100 @@ external_files:
   hh_btag_repo: "/afs/cern.ch/work/m/mrieger/public/hbt/external_files/hh-btag-master-d7a71eb3.tar.gz"
 
 channels:
-  etau:
+  # 2lep
+  cetau:
     id: 1
     label: "$e\\tau_{h}$"
-  mutau: 
+  cmutau: 
     id: 2
     label: "$\\mu\\tau_{h}$"
-  tautau: 
+  ctautau: 
     id: 3
     label: "$\\tau_{h}\\tau_{h}$"
-    # ... other channels
+  cee: 
+    id: 4
+    label: "$ee$"
+  cmumu: 
+    id: 5
+    label: "$\\mu\\mu$"
+  cemu: 
+    id: 6
+    label: "$e\\mu$"
+  # 3lep
+  c3e: 
+    id: 14
+    label: "$eee$"
+  c2emu: 
+    id: 15
+    label: "$ee\\mu$"
+  ce2mu: 
+    id: 16
+    label: "$e\\mu\\mu$"
+  c3mu: 
+    id: 17
+    label: "$\\mu\\mu\\mu$"
+  # 4lep no taus
+  c4e: 
+    id: 18
+    label: "$eeee$"
+  c3emu: 
+    id: 19
+    label: "$eee\\mu$"
+  c2e2mu: 
+    id: 20
+    label: "$ee\\mu\\mu$"
+  ce3mu: 
+    id: 21
+    label: "$e\\mu\\mu\\mu$"
+  c4mu: 
+    id: 22
+    label: "$\\mu\\mu\\mu\\mu$"
+  ## 4lep with taus
+  # 3l1tau channels
+  c3etau: 
+    id: 23
+    label: "$eee\\tau_{h}$"
+  c2emutau: 
+    id: 24
+    label: "$ee\\mu\\tau_{h}$"
+  ce2mutau: 
+    id: 25
+    label: "$e\\mu\\mu\\tau_{h}$"
+  c3mutau: 
+    id: 26
+    label: "$\\mu\\mu\\mu\\tau_{h}$"
+  # 2l2tau channels
+  c2e2tau: 
+    id: 27
+    label: "$ee\\tau_{h}\\tau_{h}$"
+  cemu2tau: 
+    id: 28
+    label: "$e\\mu\\tau_{h}\\tau_{h}$"
+  c2mu2tau: 
+    id: 29
+    label: "$\\mu\\mu\\tau_{h}\\tau_{h}$"
+  # 1l3tau channles
+  ce3tau: 
+    id: 30
+    label: "$e\\tau_{h}\\tau_{h}\\tau_{h}$"
+  cmu3tau: 
+    id: 31
+    label: "$\\mu\\tau_{h}\\tau_{h}\\tau_{h}$"
+  # 4tau channels
+  c4tau: 
+    id: 32
+    label: "$\\tau_{h}\\tau_{h}\\tau_{h}\\tau_{h}$"
+  # 2lss 1 or more tau channels
+  c2e0or1tau: 
+    id: 33
+    label: "$ee,\\leq 1\\ \\tau_{h}$"
+  cemu0or1tau: 
+    id: 34
+    label: "$e\\mu, \\leq 1\\ \\tau_{h}$"
+  c2mu0or1tau: 
+    id: 35
+    label: "$\\mu\\mu, \\leq 1\\ \\tau_{h}$"
+    # ... add other channels
 
 plot_defaults:
   general:

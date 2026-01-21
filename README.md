@@ -127,7 +127,7 @@ git add columnflow cmsdb
 git commit -m "Update submodules: columnflow, cmsdb (including nested law and order)"
 
 # ?! Push to your branch ?! can also be skipped 
-# ( PLEASE make sure that you are on your fork or separate branch from the master) git push origin <your-branch-name>
+# (PLEASE make sure that you are on your fork or separate branch from the master) git push origin <your-branch-name>
 ```
 
 ### 4️⃣ Restore Your Local Changes

@@ -110,6 +110,8 @@ def electron_selection(
     )
     is_single = trigger.has_tag("single_e") or trigger.has_tag("single_mu")
     is_cross = trigger.has_tag("cross_e_tau")
+    btagcut_medium = self.config_inst.x.btag_working_points["deepJet"]["medium"]
+    btagcut_tight = self.config_inst.x.btag_working_points["deepJet"]["tight"]
 
     # obtain mva flags, which might be located at different routes, depending on the nano version
     if "mvaIso_WP80" in events.Electron.fields:
@@ -136,17 +138,7 @@ def electron_selection(
     if is_single or is_cross or True:  # investigate why trigger dependence on providing masks
         # min_pt = 26.0 if is_2016 else (31.0 if is_single else 25.0)
         # max_eta = 2.5 if is_single else 2.1
-        btagcut = 0.3064  # 22 pre
-        btagcut_tight = 0.7217  # 22 pre
-        if self.config_inst.campaign.x.year == 2022 and self.config_inst.campaign.has_tag("postEE"):
-            btagcut = 0.3033  # post
-            btagcut_tight = 0.7134
-        if self.config_inst.campaign.x.year == 2023 and self.config_inst.campaign.has_tag("preBPix"):
-            btagcut = 0.2431  # pre
-            btagcut_tight = 0.6553
-        if self.config_inst.campaign.x.year == 2023 and self.config_inst.campaign.has_tag("postBPix"):
-            btagcut = 0.2435  # post
-            btagcut_tight = 0.6563
+
         closestjet_indicies = events.Electron.jetIdx[:, :]
         bad_indicies = (closestjet_indicies == -1)  # set btag to 0 if no closest jet
         btag_values_bad = 0 * events.Electron.pt[bad_indicies]
@@ -167,7 +159,7 @@ def electron_selection(
             (events.Electron.lostHits == 0) &
             atleast_medium &
             (promptMVA > 0.3) &
-            (btag_values < btagcut)
+            (btag_values < btagcut_medium)
         )
         loose_mask = (
             (events.Electron.pt > 7.0) &
@@ -181,7 +173,7 @@ def electron_selection(
         )
         idlepmvapassed = (atleast_medium & (promptMVA > 0.3))
         idlepmvafailed = ((mva_iso_wp90 == 1) & (promptMVA <= 0.3))  # loose doesnt exist anymore :(
-        btaglepmvapassed = ((btag_values < btagcut) & (promptMVA < 0.3))
+        btaglepmvapassed = ((btag_values < btagcut_medium) & (promptMVA < 0.3))
         btaglepmvafailed = ((btag_values < btagcut_tight) & (promptMVA > 0.3))
         jetisolepmvapassed = (promptMVA > 0.3)
         jetisolepmvafailed = ((promptMVA < 0.3) & (events.Electron.jetPtRelv2 < (1. / 1.7)))
@@ -284,9 +276,10 @@ def muon_selection(
     """
     # ch_key = kwargs.get("ch_key", None)
     # is_2016 = self.config_inst.campaign.x.year == 2016
-    # is_single = trigger.has_tag("single_mu")
     is_single = trigger.has_tag("single_mu") or trigger.has_tag("single_e")
     is_cross = trigger.has_tag("cross_mu_tau")
+    btagcut_medium = self.config_inst.x.btag_working_points["deepJet"]["medium"]
+    btagcut_tight = self.config_inst.x.btag_working_points["deepJet"]["tight"]
 
     # default muon mask
     tight_mask = None
@@ -303,17 +296,6 @@ def muon_selection(
             # nano <v14
             promptMVA = events.Muon.mvaTTH
 
-        btagcut = 0.3064  # 22 pre
-        btagcut_tight = 0.7217  # 22 pre
-        if self.config_inst.campaign.x.year == 2022 and self.config_inst.campaign.has_tag("postEE"):
-            btagcut = 0.3033  # post
-            btagcut_tight = 0.7134
-        if self.config_inst.campaign.x.year == 2023 and self.config_inst.campaign.has_tag("preBPix"):
-            btagcut = 0.2431  # pre
-            btagcut_tight = 0.6553
-        if self.config_inst.campaign.x.year == 2023 and self.config_inst.campaign.has_tag("postBPix"):
-            btagcut = 0.2435  # post
-            btagcut_tight = 0.6563
         closestjet_indicies = events.Muon.jetIdx[:, :]
         bad_indicies = (closestjet_indicies == -1)  # set btag to 0 if no closest jet
         btag_values_bad = 0 * events.Muon.pt[bad_indicies]
@@ -329,7 +311,7 @@ def muon_selection(
             (events.Muon.sip3d < 8) &
             (events.Muon.miniPFRelIso_all < 0.4) &
             atleast_medium &
-            (btag_values < btagcut) &
+            (btag_values < btagcut_medium) &
             (promptMVA > 0.5)
         )
         loose_mask = (
@@ -341,7 +323,7 @@ def muon_selection(
             (events.Muon.miniPFRelIso_all < 0.4) &
             atleast_loose
         )
-        btaglepmvapassed = ((btag_values < btagcut) & (promptMVA < 0.5))
+        btaglepmvapassed = ((btag_values < btagcut_medium) & (promptMVA < 0.5))
         btaglepmvafailed = ((btag_values < btagcut_tight) & (promptMVA > 0.5))
         fakeable_mask = (
             (events.Muon.pt > 10) &
@@ -587,29 +569,9 @@ def lepton_selection(
 
     # get channels from the config
     print(self.config_inst)
-    channel_names = [
-        # 2 lep
-        "etau", "mutau", "tautau", "ee", "mumu", "emu",
-        # 3 lep
-        "c3e", "c2emu", "ce2mu", "c3mu",
-        # 4 lep (no taus)
-        "c4e", "c3emu", "c2e2mu", "ce3mu", "c4mu",
-        # 4 lep with taus
-        # 3l1tau
-        "c3etau", "c2emutau", "ce2mutau", "c3mutau",
-        # 2l2tau
-        "c2e2tau", "c2mu2tau", "cemu2tau",
-        # 1l3tau
-        "ce3tau", "cmu3tau",
-        # 4tau
-        "c4tau",
-        # 2lss
-        "c2e0or1tau", "cemu0or1tau", "c2mu0or1tau",
-    ]
-
     channels = {
         name: self.config_inst.get_channel(name)
-        for name in channel_names
+        for name in self.config_inst.x.channel_names
     }
 
     # prepare vectors for output vectors
@@ -970,6 +932,7 @@ def lepton_selection(
                 sel_muon_mask = sel_muon_mask | (mu_base & mu_ctrl_bdt)
                 sel_loosemuon_mask = sel_loosemuon_mask | (mu_base & mu_veto_bdt)
                 sel_tightmuon_mask = sel_tightmuon_mask | (mu_base & mu_mask_bdt)
+
                 # leptons_os = ak.where(ok_bdt_eormu, False, leptons_os)
                 # tight_ok = (e_base & (ak.sum(e_mask_bdt,  axis=1) >= 1)) | (mu_base & (ak.sum(mu_mask_bdt,  axis=1) >= 1))  # noqa E501
                 # tight_sel_bdt = tight_sel_bdt | tight_ok

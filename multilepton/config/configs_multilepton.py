@@ -658,6 +658,7 @@ def add_config(
     cfg.x.default_hist_producer = "default"
     cfg.x.external_files = DotDict()
     cfg.x.minbias_xs = Number(69.2, 0.046j)
+    cfg.x.channel_names = analysis_data.get("channels", []).keys()
 
     btagJECsources = analysis_data.get("btag_sf_jec_sources", [])
     btagJECsources += [f"Absolute_{year}", f"BBEC1_{year}", f"EC2_{year}", f"HF_{year}", f"RelativeSample_{year}", ""]
@@ -1254,53 +1255,24 @@ def add_config(
     }
 
     # =============================================
-    # add channels
+    # channels we have so far --> check analysis.yaml
+    # 2 lep: "etau", "mutau", "tautau", "ee", "mumu", "emu",
+    # 3 lep: "c3e", "c2emu", "ce2mu", "c3mu",
+    # 4 lep (no taus): "c4e", "c3emu", "c2e2mu", "ce3mu", "c4mu",
+    # 4 lep with taus:
+    #   3l1tau: "c3etau", "c2emutau", "ce2mutau", "c3mutau",
+    #   2l2tau: "c2e2tau", "c2mu2tau", "cemu2tau",
+    #   1l3tau: "ce3tau", "cmu3tau",
+    #   4tau: "c4tau",
+    #   2lss 0 or 1 tau: "c2e0or1tau", "cemu0or1tau", "c2mu0or1tau",
     # =============================================
-    # for channel_config in analysis_data.get("channels", []):
-    #        cfg.add_channel(
-    #            name=channel_config["name"],
-    #            id=channel_config["id"],
-    #            label=channel_config["label"],
-    #        )
-
-    # 2lep
-    cfg.add_channel(name="cetau", id=1, label=r"$e\tau_{h}$")
-    cfg.add_channel(name="cmutau", id=2, label=r"$\mu\tau_{h}$")
-    cfg.add_channel(name="ctautau", id=3, label=r"$\tau_{h}\tau_{h}$")
-    cfg.add_channel(name="cee", id=4, label=r"$ee$")
-    cfg.add_channel(name="cmumu", id=5, label=r"$\mu\mu$")
-    cfg.add_channel(name="cemu", id=6, label=r"$e\mu$")
-    # 3lep
-    cfg.add_channel(name="c3e", id=14, label=r"$eee$")
-    cfg.add_channel(name="c2emu", id=15, label=r"$ee\mu$")
-    cfg.add_channel(name="ce2mu", id=16, label=r"$e\mu\mu$")
-    cfg.add_channel(name="c3mu", id=17, label=r"$\mu\mu\mu$")
-    # 4lep no taus
-    cfg.add_channel(name="c4e", id=18, label=r"$eeee$")
-    cfg.add_channel(name="c3emu", id=19, label=r"$eee\mu$")
-    cfg.add_channel(name="c2e2mu", id=20, label=r"$ee\mu\mu$")
-    cfg.add_channel(name="ce3mu", id=21, label=r"$e\mu\mu\mu$")
-    cfg.add_channel(name="c4mu", id=22, label=r"$\mu\mu\mu\mu$")
-    # 4lep with taus
-    # 3l1tau channels
-    cfg.add_channel(name="c3etau", id=23, label=r"$eee\tau_{h}$")
-    cfg.add_channel(name="c2emutau", id=24, label=r"$ee\mu\tau_{h}$")
-    cfg.add_channel(name="ce2mutau", id=25, label=r"$e\mu\mu\tau{h}$")
-    cfg.add_channel(name="c3mutau", id=26, label=r"$\mu\mu\mu\tau{h}$")
-    # 2l2tau channels
-    cfg.add_channel(name="c2e2tau", id=27, label=r"$ee\tau{h}\tau{h}$")
-    cfg.add_channel(name="cemu2tau", id=28, label=r"$e\mu\tau{h}\tau{h}$")
-    cfg.add_channel(name="c2mu2tau", id=29, label=r"$\mu\mu\tau{h}\tau{h}$")
-    # 1l3tau channles
-    cfg.add_channel(name="ce3tau", id=30, label=r"$e\tau{h}\tau{h}\tau{h}$")
-    cfg.add_channel(name="cmu3tau", id=31, label=r"$\mu\tau{h}\tau{h}\tau{h}$")
-    # 4tau channels
-    cfg.add_channel(name="c4tau", id=32, label=r"$\tau{h}\tau{h}\tau{h}\tau{h}$")
-    # 2lss channels
-    cfg.add_channel(name="c2e0or1tau", id=33, label=r"$ee\  \leq 1\,\tau_{h}$")
-    cfg.add_channel(name="cemu0or1tau", id=34, label=r"$e\mu\ \leq 1\,\tau_{h}$")
-    cfg.add_channel(name="c2mu0or1tau", id=35, label=r"$\mu\mu\ \leq 1\,\tau_{h}$")
-
+    channels = analysis_data.get("channels", {})
+    for name, ch in channels.items():
+        cfg.add_channel(
+            name=name,
+            id=channels[name]["id"],
+            label=channels[name]["label"],
+        )
     # =============================================
     # add variables, categories , met and triggers
     # =============================================

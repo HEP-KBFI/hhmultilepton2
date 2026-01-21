@@ -19,14 +19,14 @@ def add_categories(config: od.Config) -> None:
     # root category (-1 has special meaning in cutflow)
     root_cat = add_category(config, name="all", id=-1, selection="cat_all", label="")
     _add_category = functools.partial(add_category, parent=root_cat)
-    # lepton channels
+    # 2l
     _add_category(config, name="cetau", id=1, selection="cat_etau", label=config.channels.n.cetau.label)
     _add_category(config, name="cmutau", id=2, selection="cat_mutau", label=config.channels.n.cmutau.label)
     _add_category(config, name="ctautau", id=3, selection="cat_tautau", label=config.channels.n.ctautau.label)
     _add_category(config, name="cee", id=4, selection="cat_ee", label=config.channels.n.cee.label)
     _add_category(config, name="cmumu", id=5, selection="cat_mumu", label=config.channels.n.cmumu.label)
     _add_category(config, name="cemu", id=6, selection="cat_emu", label=config.channels.n.cemu.label)
-    # 3l/4l inclusive channels
+    # 3l/4l inclusive
     _add_category(config, name="cat3l0tau_SR", id=1001, selection="cat_3l0tau_SR", label=r"$3\ell 0\tau_h$ SR")
     _add_category(config, name="cat3l0tau_SB", id=1002, selection="cat_3l0tau_SB", label=r"$3\ell 0\tau_h$ SB")
     _add_category(config, name="cat4l_SR", id=1003, selection="cat_4l_SR", label=r"$4\ell$ SR")
@@ -43,7 +43,7 @@ def add_categories(config: od.Config) -> None:
     _add_category(config, name="cat2l0or1tau_SR_OS", id=1014, selection="cat_2l0or1tau_SR_OS", label=r"$2\ell\  \leq 1\,\tau_{h}$ SR, OS")  # noqa: E501
     _add_category(config, name="cat2l0or1tau_SB_SS", id=1015, selection="cat_2l0or1tau_SB_SS", label=r"$2\ell\  \leq 1\,\tau_{h}$ SB, SS")  # noqa: E501
     _add_category(config, name="cat2l0or1tau_SB_OS", id=1016, selection="cat_2l0or1tau_SB_OS", label=r"$2\ell\  \leq 1\,\tau_{h}$ SB, OS")  # noqa: E501
-    # 3l/4l non inclusive channels ( no taus)
+    # 3l/4l non inclusive ( no taus)
     _add_category(config, name="c3e", id=14, selection="cat_3e", label=config.channels.n.c3e.label)
     _add_category(config, name="c2emu", id=15, selection="cat_2emu", label=config.channels.n.c2emu.label)
     _add_category(config, name="ce2mu", id=16, selection="cat_e2mu", label=config.channels.n.ce2mu.label)
@@ -64,7 +64,7 @@ def add_categories(config: od.Config) -> None:
     _add_category(config, name="ce3tau", id=30, selection="cat_e3tau", label=config.channels.n.ce3tau.label)
     _add_category(config, name="cmu3tau", id=31, selection="cat_mu3tau", label=config.channels.n.cmu3tau.label)
     _add_category(config, name="c4tau", id=32, selection="cat_4tau", label=config.channels.n.c4tau.label)
-    # 2-leptons 0 or 1 taus channels
+    # 2l with 0 or 1 taus
     _add_category(config, name="c2e0or1tau", id=33, selection="cat_c2e0or1tau", label=config.channels.n.c2e0or1tau.label)  # noqa: E501
     _add_category(config, name="cemu0or1tau", id=34, selection="cat_cemu0or1tau", label=config.channels.n.cemu0or1tau.label)  # noqa: E501
     _add_category(config, name="c2mu0or1tau", id=35, selection="cat_c2mu0or1tau", label=config.channels.n.c2mu0or1tau.label)  # noqa: E501
