@@ -1,4 +1,4 @@
-export CF_CERN_USER="kjaffel"
+export CF_CERN_USER="$USER"
 export CF_CERN_USER_FIRSTCHAR="${CF_CERN_USER:0:1}"
 export CF_DATA="$CF_REPO_BASE/columnflow_venv"
 export CF_SOFTWARE_BASE="$CF_DATA/software"
