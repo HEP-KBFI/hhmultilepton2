@@ -1282,16 +1282,21 @@ def add_config(
     cfg.add_channel(name="ce3mu", id=21, label=r"$e\mu\mu\mu$")
     cfg.add_channel(name="c4mu", id=22, label=r"$\mu\mu\mu\mu$")
     # 4lep with taus
+    # 3l1tau channels
     cfg.add_channel(name="c3etau", id=23, label=r"$eee\tau_{h}$")
     cfg.add_channel(name="c2emutau", id=24, label=r"$ee\mu\tau_{h}$")
     cfg.add_channel(name="ce2mutau", id=25, label=r"$e\mu\mu\tau{h}$")
     cfg.add_channel(name="c3mutau", id=26, label=r"$\mu\mu\mu\tau{h}$")
+    # 2l2tau channels
     cfg.add_channel(name="c2e2tau", id=27, label=r"$ee\tau{h}\tau{h}$")
     cfg.add_channel(name="cemu2tau", id=28, label=r"$e\mu\tau{h}\tau{h}$")
     cfg.add_channel(name="c2mu2tau", id=29, label=r"$\mu\mu\tau{h}\tau{h}$")
+    # 1l3tau channles
     cfg.add_channel(name="ce3tau", id=30, label=r"$e\tau{h}\tau{h}\tau{h}$")
     cfg.add_channel(name="cmu3tau", id=31, label=r"$\mu\tau{h}\tau{h}\tau{h}$")
+    # 4tau channels
     cfg.add_channel(name="c4tau", id=32, label=r"$\tau{h}\tau{h}\tau{h}\tau{h}$")
+    # 2lss channels
     cfg.add_channel(name="c2e0or1tau", id=33, label=r"$ee\  \leq 1\,\tau_{h}$")
     cfg.add_channel(name="cemu0or1tau", id=34, label=r"$e\mu\ \leq 1\,\tau_{h}$")
     cfg.add_channel(name="c2mu0or1tau", id=35, label=r"$\mu\mu\ \leq 1\,\tau_{h}$")

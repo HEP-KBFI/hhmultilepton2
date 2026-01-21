@@ -29,8 +29,8 @@ For further questions please, contact t\*\*\*\*.l\*\*\*\*@no-spam-cern.ch.
 ## First time setup
 
 ```shell
-# 1. clone the project
-git clone --recursive git@github.com:HEP-KBFI/hhmultilepton2.git
+# 1. fork then clone the project
+git clone --recursive git@github.com:<your-github-user-name>/hhmultilepton2.git
 cd hhmultilepton2
 
 # 2. get a voms token
@@ -39,7 +39,7 @@ voms-proxy-init -voms cms -rfc -valid 196:00
 # 3. copy the provided template to a new file (you can choose any <setup_name>):
 cp .setups/template.sh .setups/<setup_name>.sh
 
-# 4. open .setups/mydev.sh in your editor and adjust any environment variables or paths as needed for your local setup.
+# 4. open .setups/dev.sh in your editor and adjust any environment variables or paths as needed for your local setup.
 # then source the main setup script with your custom setup name:
 source setup.sh <setup_name> [sandbox_type]
 ```
@@ -49,8 +49,8 @@ Arguments:
   <setup_name>     Name of the setup (random name of your choice)
   [sandbox_type]   Optional: choose between 'minimal' (default) or 'full'
 Examples:
-  source setup.sh mydev            # uses 'minimal' environment from (sandboxes/venv_multilepton.sh)
-  source setup.sh mydev full       # uses 'full' environment from (sandboxes/venv_multilepton_dev.sh) 
+  source setup.sh dev            # uses 'minimal' environment from (sandboxes/venv_multilepton.sh)
+  source setup.sh dev full       # uses 'full' environment from (sandboxes/venv_multilepton_dev.sh) 
 ```
 
 Note: If you prefer not to use the provided template, you can still activate the environment manually by running:
@@ -126,8 +126,8 @@ git add columnflow cmsdb
 # Commit the update
 git commit -m "Update submodules: columnflow, cmsdb (including nested law and order)"
 
-# Push to your branch
-git push origin <your-branch-name>
+# ?! Push to your branch ?! can also be skipped 
+# ( PLEASE make sure that you are on your fork or separate branch from the master) git push origin <your-branch-name>
 ```
 
 ### 4️⃣ Restore Your Local Changes
@@ -177,8 +177,8 @@ git config -f .gitmodules --get-regexp submodule
 ```shell
 voms-proxy-init -voms cms -rfc -valid 196:00
 
-# source the setup and export env in the sorted file " .setups/mydev.sh " in this case
-source setup.sh mydev
+# source the setup and export env in the sorted file " .setups/dev.sh " in this case
+source setup.sh dev
 ```
 
 2. Try to run on 1 signal, 1 backgound and 1 data locally:

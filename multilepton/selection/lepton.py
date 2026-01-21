@@ -380,7 +380,6 @@ def muon_trigger_matching(
     is_single = trigger.has_tag("single_mu")
     is_cross = trigger.has_tag("cross_mu_tau")
 
-    # catch config errors
     assert is_single or is_cross
     assert trigger.n_legs == len(leg_masks) == (1 if is_single else 2)
     assert abs(trigger.legs["mu"].pdg_id) == 13
@@ -521,7 +520,6 @@ def tau_trigger_matching(
 
     # start per-tau mask with trigger object matching per leg
     if is_cross_e or is_cross_mu:
-        # catch config errors
         assert trigger.n_legs == len(leg_masks) == 2
         assert abs(trigger.legs["tau"].pdg_id) == 15
         # match leg 1
@@ -532,7 +530,6 @@ def tau_trigger_matching(
         )
 
     # is_any_cross_tau
-    # catch config errors
     assert trigger.n_legs == len(leg_masks) >= 2
     assert abs(trigger.legs["tau1"].pdg_id) == 15
     assert abs(trigger.legs["tau2"].pdg_id) == 15
@@ -590,66 +587,29 @@ def lepton_selection(
 
     # get channels from the config
     print(self.config_inst)
-    # ch_etau = self.config_inst.get_channel("etau")
-    # ch_mutau = self.config_inst.get_channel("mutau")
-    # ch_tautau = self.config_inst.get_channel("tautau")
-    # ch_ee = self.config_inst.get_channel("ee")
-    # ch_mumu = self.config_inst.get_channel("mumu")
-    # ch_emu = self.config_inst.get_channel("emu")
-    # new 3l channels
-    ch_3e = self.config_inst.get_channel("c3e")
-    ch_2emu = self.config_inst.get_channel("c2emu")
-    ch_e2mu = self.config_inst.get_channel("ce2mu")
-    ch_3mu = self.config_inst.get_channel("c3mu")
-    # new 4l channels
-    ch_4e = self.config_inst.get_channel("c4e")
-    ch_3emu = self.config_inst.get_channel("c3emu")
-    ch_2e2mu = self.config_inst.get_channel("c2e2mu")
-    ch_e3mu = self.config_inst.get_channel("ce3mu")
-    ch_4mu = self.config_inst.get_channel("c4mu")
-    # new  3l1tau channels
-    ch_3etau = self.config_inst.get_channel("c3etau")
-    ch_2emutau = self.config_inst.get_channel("c2emutau")
-    ch_e2mutau = self.config_inst.get_channel("ce2mutau")
-    ch_3mutau = self.config_inst.get_channel("c3mutau")
-    # new  2l2tau channels
-    ch_2e2tau = self.config_inst.get_channel("c2e2tau")
-    ch_2mu2tau = self.config_inst.get_channel("c2mu2tau")
-    ch_emu2tau = self.config_inst.get_channel("cemu2tau")
-    # new 1l3tau
-    ch_e3tau = self.config_inst.get_channel("ce3tau")
-    ch_mu3tau = self.config_inst.get_channel("cmu3tau")
-    # new 4tau channel
-    ch_4tau = self.config_inst.get_channel("c4tau")
-    # new 2lss channels
-    ch_2e0or1tau = self.config_inst.get_channel("c2e0or1tau")
-    ch_emu0or1tau = self.config_inst.get_channel("cemu0or1tau")
-    ch_2mu0or1tau = self.config_inst.get_channel("c2mu0or1tau")
-
-    CHANNELS = {
-        "3e": {"id": ch_3e.id},
-        "4e": {"id": ch_4e.id},
-        "3mu": {"id": ch_3mu.id},
-        "4mu": {"id": ch_4mu.id},
-        "2emu": {"id": ch_2emu.id},
-        "e2mu": {"id": ch_e2mu.id},
-        "3emu": {"id": ch_3emu.id},
-        "e3mu": {"id": ch_e3mu.id},
-        "2e2mu": {"id": ch_2e2mu.id},
-        "3etau": {"id": ch_3etau.id},
-        "2emutau": {"id": ch_2emutau.id},
-        "e2mutau": {"id": ch_e2mutau.id},
-        "3mutau": {"id": ch_3mutau.id},
-        "2e2tau": {"id": ch_2e2tau.id},
-        "2mu2tau": {"id": ch_2mu2tau.id},
-        "emu2tau": {"id": ch_emu2tau.id},
-        "e3tau": {"id": ch_e3tau.id},
-        "mu3tau": {"id": ch_mu3tau.id},
-        "4tau": {"id": ch_4tau.id},
-        "2e0or1tau": {"id": ch_2e0or1tau.id},
-        "emu0or1tau": {"id": ch_emu0or1tau.id},
-        "2mu0or1tau": {"id": ch_2mu0or1tau.id},
-        "eormu": {"id": "eormu"},
+    channel_names = [
+        # 2 lep
+        "etau", "mutau", "tautau", "ee", "mumu", "emu",
+        # 3 lep
+        "c3e", "c2emu", "ce2mu", "c3mu",
+        # 4 lep (no taus)
+        "c4e", "c3emu", "c2e2mu", "ce3mu", "c4mu",
+        # 4 lep with taus
+        # 3l1tau
+        "c3etau", "c2emutau", "ce2mutau", "c3mutau",
+        # 2l2tau
+        "c2e2tau", "c2mu2tau", "cemu2tau",
+        # 1l3tau
+        "ce3tau", "cmu3tau",
+        # 4tau
+        "c4tau",
+        # 2lss
+        "c2e0or1tau", "cemu0or1tau", "c2mu0or1tau",
+    ]
+    
+    channels = {
+        name: self.config_inst.get_channel(name)
+        for name in channel_names
     }
 
     # prepare vectors for output vectors
@@ -763,19 +723,23 @@ def lepton_selection(
     e_only_emutau = e_trig_any & ~mu_trig_any & ~tau_trig_any
     mu_only_emutau = mu_trig_any & ~e_trig_any & ~tau_trig_any
     cross_e_tau_only = tau_trig_any & ~e_trig_any & ~mu_trig_any
+
     single_e_tids = [tid for tid, tags in _tid_tags.items() if "single_e" in tags]
     double_e_tids = [tid for tid, tags in _tid_tags.items() if "double_e" in tags]
     triple_e_tids = [tid for tid, tags in _tid_tags.items() if "triple_e" in tags]
+    
     single_mu_tids = [tid for tid, tags in _tid_tags.items() if "single_mu" in tags]
     double_mu_tids = [tid for tid, tags in _tid_tags.items() if "double_mu" in tags]
     triple_mu_tids = [tid for tid, tags in _tid_tags.items() if "triple_mu" in tags]
+    
     double_emu_tids = [tid for tid, tags in _tid_tags.items() if "double_emu" in tags]
     triple_eemu_tids = [tid for tid, tags in _tid_tags.items() if "triple_eemu" in tags]
     triple_emumu_tids = [tid for tid, tags in _tid_tags.items() if "triple_emumu" in tags]
-    cross_tau_tau_any = [tid for tid, tags in _tid_tags.items() if {"cross_tau_tau",
-                                                                    "cross_tau_tau_jet", "cross_tau_tau_vbf"} & tags]
+    
+    cross_tau_tau_any = [tid for tid, tags in _tid_tags.items() if {"cross_tau_tau", "cross_tau_tau_jet", "cross_tau_tau_vbf"} & tags]
     cross_e_tau = [tid for tid, tags in _tid_tags.items() if "cross_e_tau" in tags]
     cross_mu_tau = [tid for tid, tags in _tid_tags.items() if "cross_mu_tau" in tags]
+    
     # all_tids = list(_tid_tags.keys())
 
     _trig_cache.update({
@@ -801,15 +765,9 @@ def lepton_selection(
     # ────────────────────────────────────────────────────────────────
     # 2 SECOND LOOP – evaluate every physics channel once
     # ────────────────────────────────────────────────────────────────
-    for ch_key, spec in CHANNELS.items():
-
-        if ch_key not in {"eormu", "3e", "3mu", "2emu", "e2mu", "4e", "4mu", "3emu", "2e2mu", "e3mu",
-                          "3etau", "2e2tau", "e3tau", "2mu2tau", "mu3tau", "3mutau", "2emutau",
-                          "e2mutau", "emu2tau", "4tau", "2e0or1tau", "emu0or1tau", "2mu0or1tau"}:
-            continue
+    for ch_key, spec in channels.items():
 
         # eormu -> set trig_ids to any particular trigger, so that eormu does not run over all triggers
-
         if ch_key in {"eormu"}:
             if self.dataset_inst.is_mc:
                 trig_ids = single_e_tids
@@ -817,7 +775,6 @@ def lepton_selection(
                 continue
 
         # 3l0th + 3l1th + 4l: single, double, and triple lepton triggers
-
         elif ch_key in {"3e", "4e", "3etau"}:
             if self.dataset_inst.is_mc or self.dataset_inst.has_tag("ee"):
                 trig_ids = single_e_tids + double_e_tids + triple_e_tids
@@ -906,7 +863,6 @@ def lepton_selection(
                 continue
 
         # 2l2th + 2l0or1tau: single, double mixed lepton triggers
-
         elif ch_key in {"2e2tau", "2e0or1tau"}:
             if self.dataset_inst.is_mc or self.dataset_inst.has_tag("ee"):
                 trig_ids = single_e_tids + double_e_tids
@@ -932,7 +888,6 @@ def lepton_selection(
                 continue
 
         # 1l3th
-
         elif ch_key in {"e3tau"}:
             if self.dataset_inst.is_mc:
                 trig_ids = single_e_tids + cross_e_tau + cross_tau_tau_any
@@ -967,20 +922,23 @@ def lepton_selection(
         for tid in trig_ids:
             e_mask = _trig_cache[(tid, "e")]
             e_ctrl = _trig_cache[(tid, "e_ctrl")]
-            mu_mask = _trig_cache[(tid, "mu")]
-            mu_ctrl = _trig_cache[(tid, "mu_ctrl")]
             e_veto = _trig_cache[(tid, "e_veto")]
-            mu_veto = _trig_cache[(tid, "mu_veto")]
             e_match = _trig_cache[(tid, "e_match")]
-            mu_match = _trig_cache[(tid, "mu_match")]
-            tau_mask = _trig_cache[(tid, "tau_mask")]
-            tau_iso_mask = _trig_cache[(tid, "tau_iso_mask")]
             e_ctrl_bdt = _trig_cache[(tid, "e_ctrl_bdt")]
             e_veto_bdt = _trig_cache[(tid, "e_veto_bdt")]
             e_mask_bdt = _trig_cache[(tid, "e_mask_bdt")]
+            
+            mu_mask = _trig_cache[(tid, "mu")]
+            mu_ctrl = _trig_cache[(tid, "mu_ctrl")]
+            mu_veto = _trig_cache[(tid, "mu_veto")]
+            mu_match = _trig_cache[(tid, "mu_match")]
             mu_ctrl_bdt = _trig_cache[(tid, "mu_ctrl_bdt")]
             mu_veto_bdt = _trig_cache[(tid, "mu_veto_bdt")]
             mu_mask_bdt = _trig_cache[(tid, "mu_mask_bdt")]
+            
+            tau_mask = _trig_cache[(tid, "tau_mask")]
+            tau_iso_mask = _trig_cache[(tid, "tau_iso_mask")]
+            
             fired = _trig_cache[(tid, "fired")]
 
             # channel dependent deeptau cuts vs e and mu, taumask has vs jet vvloose
@@ -1375,7 +1333,6 @@ def lepton_selection(
                 matched_trigger_ids.append(ak.singletons(ak.nan_to_none(ids)))
 
             elif ch_key == "3etau":
-
                 ch_tau_mask = (
                     tau_mask &
                     (events.Tau[get_tau_tagger("e")] >= wp_config.tau_vs_e.vloose) &
@@ -1423,7 +1380,6 @@ def lepton_selection(
                 matched_trigger_ids.append(ak.singletons(ak.nan_to_none(ids)))
 
             elif ch_key == "2e2tau":
-
                 ch_tau_mask = (
                     tau_mask &
                     (events.Tau[get_tau_tagger("e")] >= wp_config.tau_vs_e.vloose) &
@@ -1473,7 +1429,6 @@ def lepton_selection(
                 matched_trigger_ids.append(ak.singletons(ak.nan_to_none(ids)))
 
             elif ch_key == "e3tau":
-
                 ch_tau_mask = (
                     tau_mask &
                     (events.Tau[get_tau_tagger("e")] >= wp_config.tau_vs_e.vloose) &
@@ -1570,7 +1525,6 @@ def lepton_selection(
                 matched_trigger_ids.append(ak.singletons(ak.nan_to_none(ids)))
 
             elif ch_key == "2mu2tau":
-
                 ch_tau_mask = (
                     tau_mask &
                     (events.Tau[get_tau_tagger("e")] >= wp_config.tau_vs_e.vloose) &
@@ -1620,7 +1574,6 @@ def lepton_selection(
                 matched_trigger_ids.append(ak.singletons(ak.nan_to_none(ids)))
 
             elif ch_key == "mu3tau":
-
                 ch_tau_mask = (
                     tau_mask &
                     (events.Tau[get_tau_tagger("e")] >= wp_config.tau_vs_e.vloose) &
@@ -1668,7 +1621,6 @@ def lepton_selection(
                 matched_trigger_ids.append(ak.singletons(ak.nan_to_none(ids)))
 
             elif ch_key == "2emutau":
-
                 ch_tau_mask = (
                     tau_mask &
                     (events.Tau[get_tau_tagger("e")] >= wp_config.tau_vs_e.vloose) &
@@ -1738,7 +1690,6 @@ def lepton_selection(
                 matched_trigger_ids.append(ak.singletons(ak.nan_to_none(ids)))
 
             elif ch_key == "e2mutau":
-
                 ch_tau_mask = (
                     tau_mask &
                     (events.Tau[get_tau_tagger("e")] >= wp_config.tau_vs_e.vloose) &
@@ -1808,7 +1759,6 @@ def lepton_selection(
                 matched_trigger_ids.append(ak.singletons(ak.nan_to_none(ids)))
 
             elif ch_key == "emu2tau":
-
                 ch_tau_mask = (
                     tau_mask &
                     (events.Tau[get_tau_tagger("e")] >= wp_config.tau_vs_e.vloose) &
@@ -1880,7 +1830,6 @@ def lepton_selection(
                 matched_trigger_ids.append(ak.singletons(ak.nan_to_none(ids)))
 
             elif ch_key == "4tau":
-
                 ch_tau_mask = (
                     tau_mask &
                     (events.Tau[get_tau_tagger("e")] >= wp_config.tau_vs_e.vvloose) &
@@ -1917,7 +1866,6 @@ def lepton_selection(
                 matched_trigger_ids.append(ak.singletons(ak.nan_to_none(ids)))
 
             elif ch_key == "2e0or1tau":
-
                 ch_tau_mask = (
                     tau_mask &
                     (events.Tau[get_tau_tagger("e")] >= wp_config.tau_vs_e.vloose) &
@@ -1956,7 +1904,6 @@ def lepton_selection(
                 matched_trigger_ids.append(ak.singletons(ak.nan_to_none(ids)))
 
             elif ch_key == "2mu0or1tau":
-
                 ch_tau_mask = (
                     tau_mask &
                     (events.Tau[get_tau_tagger("e")] >= wp_config.tau_vs_e.vloose) &
@@ -1995,7 +1942,6 @@ def lepton_selection(
                 matched_trigger_ids.append(ak.singletons(ak.nan_to_none(ids)))
 
             elif ch_key == "emu0or1tau":
-
                 ch_tau_mask = (
                     tau_mask &
                     (events.Tau[get_tau_tagger("e")] >= wp_config.tau_vs_e.vloose) &
@@ -2052,7 +1998,7 @@ def lepton_selection(
             good_evt = ak.where(ok, True, good_evt)
 
         if ch_key != "eormu":
-            channel_id = update_channel_ids(events, channel_id, spec["id"], good_evt)
+            channel_id = update_channel_ids(events, channel_id, spec.id, good_evt)
 
     # some final type conversions
     channel_id = ak.values_astype(channel_id, np.uint32)
