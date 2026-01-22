@@ -147,17 +147,17 @@ def cat_4tau(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array, a
 
 
 @categorizer(uses={"channel_id"})
-def cat_c2e0or1tau(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array, ak.Array]:
+def cat_2e0or1tau(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array, ak.Array]:
     return events, events.channel_id == self.config_inst.channels.n.c2e0or1tau.id
 
 
 @categorizer(uses={"channel_id"})
-def cat_cemu0or1tau(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array, ak.Array]:
+def cat_emu0or1tau(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array, ak.Array]:
     return events, events.channel_id == self.config_inst.channels.n.cemu0or1tau.id
 
 
 @categorizer(uses={"channel_id"})
-def cat_c2mu0or1tau(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array, ak.Array]:
+def cat_2mu0or1tau(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array, ak.Array]:
     return events, events.channel_id == self.config_inst.channels.n.c2mu0or1tau.id
 
 
