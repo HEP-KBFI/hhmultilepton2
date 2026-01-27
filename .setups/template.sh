@@ -24,6 +24,8 @@ export CF_CRAB_SANDBOX_NAME="CMSSW_10_6_18::arch=slc7_amd64_gcc700"
 export CF_SLURM_FLAVOR="manivald"
 export CF_SLURM_PARTITION="main"
 export CF_CLUSTER_LOCAL_PATH="/scratch/local/$CF_CERN_USER/HHMultilepton_Run3/"
+export CF_JOB_BASE="/home/${CF_CERN_USER}/cf_jobs"
+export CF_STORE_LOCAL="/home/${CF_CERN_USER}/$CF_STORE_NAME"
 export TMPDIR="/scratch/local/$CF_CERN_USER"
 #============================
 #===== on lxplus ============
@@ -36,9 +38,10 @@ export CF_HTCONDOR_DISK=5GB
 export CF_HTCONDOR_RUNTIME="3h"
 #export CF_CLUSTER_LOCAL_PATH="/eos/user/$CF_CERN_USER_FIRSTCHAR/$CF_CERN_USER/HHMultilepton_Run3/"
 #export TMPDIR="/tmp/$CF_CERN_USER"
+#export CF_JOB_BASE="$CF_CLUSTER_LOCAL_PATH/cf_jobs"
+#export CF_STORE_LOCAL="$CF_CLUSTER_LOCAL_PATH/$CF_STORE_NAME"
 #============================
 
 export CF_CRAB_BASE_DIRECTORY="/store/user/$CF_CERN_USER/HHMultilepton_Run3/cf_crab_outputs"
-export CF_STORE_LOCAL="$CF_CLUSTER_LOCAL_PATH/$CF_STORE_NAME"
 export CF_WLCG_CACHE_ROOT="$CF_CLUSTER_LOCAL_PATH/cf_scratch"
-export CF_JOB_BASE="$CF_CLUSTER_LOCAL_PATH/cf_jobs"
+

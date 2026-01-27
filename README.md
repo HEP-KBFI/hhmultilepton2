@@ -33,6 +33,62 @@ For further questions please, contact t\*\*\*\*.l\*\*\*\*@no-spam-cern.ch.
 git clone --recursive git@github.com:<your-github-user-name>/hhmultilepton2.git
 cd hhmultilepton2
 
+# 1.1 make smaller adjustments to collumnflow
+Curently a few on the fly changes to collumnflow are necessary (to be patched in the future)
+
+For running on manivalds slurm, these include:
+
+```bash
+diff --git a/columnflow/tasks/framework/base.py b/columnflow/tasks/framework/base.py
+index c4d47c9..111a96b 100644
+--- a/columnflow/tasks/framework/base.py
++++ b/columnflow/tasks/framework/base.py
+@@ -180,6 +180,7 @@ class AnalysisTask(BaseTask, law.SandboxTask):
+             "version", "workflow", "job_workers", "poll_interval", "walltime", "max_runtime",
+             "retries", "acceptance", "tolerance", "parallel_jobs", "shuffle_jobs", "htcondor_cpus",
+             "htcondor_gpus", "htcondor_memory", "htcondor_disk", "htcondor_pool", "pilot", "remote_claw_sandbox",
++            "slurm_cpus",
+         }
+         kwargs["_prefer_cli"] = _prefer_cli
+
+diff --git a/columnflow/tasks/framework/remote.py b/columnflow/tasks/framework/remote.py
+index f7cd542..0c83b74 100644
+--- a/columnflow/tasks/framework/remote.py
++++ b/columnflow/tasks/framework/remote.py
+@@ -928,7 +928,7 @@ _default_slurm_runtime = law.util.parse_duration(
+     input_unit="h",
+     unit="h",
+ )
+-
++_default_slurm_cpus = law.config.get_expanded("analysis", "slurm_cpus", 1)
+
+ class SlurmWorkflow(RemoteWorkflowMixin, law.slurm.SlurmWorkflow):
+
+@@ -955,6 +955,12 @@ class SlurmWorkflow(RemoteWorkflowMixin, law.slurm.SlurmWorkflow):
+         description="the 'flavor' (i.e. configuration name) of the batch system; choices: "
+         f"maxwell; default: '{_default_slurm_flavor}'",
+     )
++    slurm_cpus = luigi.IntParameter(
++        default=_default_slurm_cpus,
++        significant=True,
++        description="number of CPUs to request; empty value leads to the cluster default setting; "
++        "_default_slurm_cpus per default",
++    )
+
+     # parameters that should not be passed to a workflow required upstream
+     exclude_params_req_set = {"slurm_runtime"}
+@@ -1019,6 +1025,10 @@ class SlurmWorkflow(RemoteWorkflowMixin, law.slurm.SlurmWorkflow):
+             )
+             config.custom_content.append(("time", job_time))
+
++        # set job cpus
++        if self.slurm_cpus is not None and self.slurm_cpus > 0:
++            config.custom_content.append(("cpus-per-task", int(self.slurm_cpus)))
++
+         # set nodes
+         config.custom_content.append(("nodes", 1))
+```
+
 # 2. get a voms token
 voms-proxy-init -voms cms -rfc -valid 196:00
 

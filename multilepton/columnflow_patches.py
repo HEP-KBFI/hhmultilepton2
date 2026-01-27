@@ -151,6 +151,22 @@ def patch_missing_xsec_handling():
     normalization.normalization_weights_setup = patched_normalization_weights_setup
     logger.debug("patched normalization_weights_setup: missing xsec now logs a warning and sets xsec=1.0")
 
+@memoize
+def patch_slurm_law_jobsh():
+    """
+    Patches the law job_sh due to an issue with the number of python
+    threads on manivald worker nodes + tempdir on /scratch
+    """
+
+    from columnflow.tasks.framework.remote import SlurmWorkflow
+    from law.job.base import JobInputFile
+    from law.util import rel_path
+
+    def slurm_job_file(self):
+        return JobInputFile(os.path.join(rel_path(__file__), 'law_job.sh'))
+
+    SlurmWorkflow.slurm_job_file = slurm_job_file
+    logger.debug(f"patched slurm_job_file setting of {SlurmWorkflow.task_family}")
 
 @memoize
 def patch_all():
@@ -160,4 +176,5 @@ def patch_all():
     patch_merge_reduction_stats_inputs()
     patch_columnar_pyarrow_version()
     patch_missing_xsec_handling()
+    patch_slurm_law_jobsh()
     # patch_htcondor_workflow_naf_resources()
