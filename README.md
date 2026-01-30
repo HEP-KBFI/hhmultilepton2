@@ -78,14 +78,35 @@ modules/
 
 ### Update All Submodules
 
-Fetch and update all submodules to their latest upstream versions:
+If you don’t have any local modifications in the submodules, you can simply run:
+This will fetch and update all submodules to their latest upstream versions.
 
-```bash
+```shell
+cf_update_submodules
+```
+
+If you do have local changes, consider stashing them before running the update to avoid conflicts.
+
+```shell
+cd hhmultilepton2/modules
+
+# stash parent repository changes
+git stash push -m "WIP: parent repository"
+
+# stash all submodule changes recursively (including nested submodules)
+git submodule foreach --recursive 'git stash push -m "WIP: $(basename $PWD)" || true'
+
 # Update all submodules recursively
 git submodule update --remote --recursive
 
 # Verify updates
 git submodule status --recursive
+
+# restore parent repository local changes
+git stash pop
+
+# restore all submodule changes recursively
+git submodule foreach --recursive 'git stash pop || true'
 ```
 
 ## Usage 
