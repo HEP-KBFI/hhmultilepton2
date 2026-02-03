@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
 
 inherit=ml # "cf" or "ml"
+task=${inherit}.GetDatasetLFNs
 task=${inherit}.SelectEvents
 task=${inherit}.PlotVariables1D
-task=${inherit}.GetDatasetLFNs
 task=${inherit}.ReduceEvents
+task=${inherit}.ProvideReducedEvents
 
 #law run cf.GetDatasetLFNs --dataset data_mu_i --config 24_v15_central --remove-output 10
 #law run ml.GetDatasetLFNs --dataset data_mu_i --config 24_v15_central --limit-dataset-files 1 --remove-output 10
@@ -12,15 +13,16 @@ task=${inherit}.ReduceEvents
 law run ${task} \
     --version onefile_test \
     --config 24_v15_central \
-    --dataset dy_m50toinf_2j_pt600toinf_amcatnlo \
+    --dataset data_mu_i \
     --limit-dataset-files 1 \
     --branch 0 \
     ${1} 
     
-    #--producers default \
-    #--variables nmu \
-    #--categories ceormu \
-    #--view-cmd imgcat \
+    # --dataset dy_m50toinf_2j_pt600toinf_amcatnlo \
+    # --producers default \
+    # --variables nmu \
+    # --categories ceormu \
+    # --view-cmd imgcat \
     # --remove-output 10 \
     # --workflow slurm --retries 1\
     # --workers 1 \

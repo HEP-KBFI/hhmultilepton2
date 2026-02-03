@@ -10,6 +10,7 @@ from columnflow.tasks.framework.base import BaseTask
 from columnflow.tasks.external import GetDatasetLFNs as CFGetDatasetLFNs
 from columnflow.tasks.plotting import PlotVariables1D as CFPlotVariables1D
 from columnflow.tasks.reduction import ReduceEvents as CFReduceEvents
+from columnflow.tasks.reduction import ProvideReducedEvents as CFProvideReducedEvents
 
 from multilepton.config.analysis_multilepton import analysis_multilepton
 
@@ -114,8 +115,22 @@ class ReduceEvents(MultileptonTask, CFReduceEvents):
         self.logger.warning(f"Running ml.ReduceEvents with: limit_dataset_files={self.limit_dataset_files}, dataset={getattr(self, 'dataset', 'N/A')}")  # noqa: E501
 
 
+class ProvideReducedEvents(MultileptonTask, CFProvideReducedEvents):
+    task_namespace = "ml"
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.logger.warning(f"Running ml.ProvideReducedEvents with: limit_dataset_files={self.limit_dataset_files}, dataset={getattr(self, 'dataset', 'N/A')}")  # noqa: E501
+
+
 class PlotVariables1D(MultileptonTask, CFPlotVariables1D):
     task_namespace = "ml"
+    
+    limit_dataset_files = luigi.IntParameter(
+        default=-1,
+        significant=False,
+        description="Limit number of dataset files to process (-1 = all)",
+    )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
