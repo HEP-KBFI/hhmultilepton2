@@ -20,7 +20,6 @@ export LAW_CMS_VO="cms"
 
 if [ "$cluster" = "manivald" ]; then
     export OPENBLAS_NUM_THREADS=2
-    export ARROW_DEFAULT_MEMORY_POOL=system
     export WLCG_FILE_SYSTEM="wlcg_fs_manivald"
     export CF_CRAB_STORAGE_ELEMENT="T2_EE_Estonia"
     export CF_CRAB_SANDBOX_NAME="CMSSW_10_6_18::arch=slc7_amd64_gcc700"
