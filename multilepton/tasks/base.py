@@ -4,18 +4,19 @@
 Custom base tasks for HH -> Multileptons.
 """
 
-import law
+import luigi
 
 from columnflow.tasks.framework.base import BaseTask
 from columnflow.tasks.external import GetDatasetLFNs as CFGetDatasetLFNs
 from columnflow.tasks.plotting import PlotVariables1D as CFPlotVariables1D
+from columnflow.tasks.reduction import ReduceEvents as CFReduceEvents
 
 from multilepton.config.analysis_multilepton import analysis_multilepton
 
 
 class MultileptonTask(BaseTask):
     task_namespace = "ml"
-    limit_dataset_files = law.Parameter(
+    limit_dataset_files = luigi.IntParameter(
         default=-1,
         significant=False,
         description="Limit number of dataset files to process (-1 = all)",
@@ -31,11 +32,10 @@ class MultileptonTask(BaseTask):
             self.config_inst.x.limit_dataset_files = limit
             # apply limit
             self.apply_file_limit_to_config(limit)
+            self.logger.warning(f"Applying limit_dataset_files={limit} to config {self.config_inst.name}")
 
     def apply_file_limit_to_config(self, limit):
         """Immediately modify dataset files in the current config."""
-        self.logger.warning(f"Applying limit {limit} to config {self.config_inst.name}")
-
         modified = False
         for dataset in self.config_inst.datasets:
             for info in dataset.info.values():
@@ -106,27 +106,37 @@ class GetDatasetLFNs(MultileptonTask, CFGetDatasetLFNs):
         return super().run()
 
 
+class ReduceEvents(MultileptonTask, CFReduceEvents):
+    task_namespace = "ml"
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.logger.warning(f"Running ml.ReduceEvents with: limit_dataset_files={self.limit_dataset_files}, dataset={getattr(self, 'dataset', 'N/A')}")  # noqa: E501
+
+
 class PlotVariables1D(MultileptonTask, CFPlotVariables1D):
     task_namespace = "ml"
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.logger.warning(f"PlotVariables1D params: limit={self.limit_dataset_files}, dataset={getattr(self, 'dataset', 'N/A')}")  # noqa: E501
+        self.logger.warning(f"Running ml.PlotVariables1D with: limit_dataset_files={self.limit_dataset_files}, dataset={getattr(self, 'datasets', 'N/A')}")  # noqa: E501
 
-    def requires(self):
-        reqs = super().requires()
-        if isinstance(reqs, dict) and "lfns" in reqs:
-            lfns_task = reqs["lfns"]
-
-            if int(self.limit_dataset_files) > 0:
-                self.logger.warning(f"Creating ml.GetDatasetLFNs for dataset: {getattr(lfns_task, 'dataset', 'unknown')}")  # noqa: E501
-                # Minimal parameters - let law figure out the rest
-                reqs["lfns"] = GetDatasetLFNs.req(
-                    task=self,  # Pass self so it inherits context
+    def workflow_requires(self):
+        """Build the workflow with our parameter."""
+        reqs = super().workflow_requires()
+        if int(self.limit_dataset_files) > 0:
+            # Minimal parameters - let law figure out the rest
+            for d in self.datasets:
+                self.logger.warning(f"type(dataset) = {type(d)}, value = {d}")
+            reqs["lfns"] = {
+                dataset: GetDatasetLFNs.req(
+                    self,
+                    dataset=dataset[0],
                     limit_dataset_files=self.limit_dataset_files,
                 )
+                for dataset in self.datasets
+            }
         return reqs
 
     def run(self):
-        self.logger.warning(f"Running PlotVariables1D with limit_dataset_files = {self.limit_dataset_files}")
         return super().run()

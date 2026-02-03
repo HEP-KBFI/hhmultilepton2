@@ -1,30 +1,29 @@
 #!/usr/bin/env bash
 
-#debug="LAW_LOG_LEVEL=DEBUG LAW_DEBUG=1 "
-debug=""
-
-#task="cf.SelectEvents"
-task="ml.PlotVariables1D"
-#task="ml.GetDatasetLFNs"
+inherit=ml # "cf" or "ml"
+task=${inherit}.SelectEvents
+task=${inherit}.PlotVariables1D
+task=${inherit}.GetDatasetLFNs
+task=${inherit}.ReduceEvents
 
 #law run cf.GetDatasetLFNs --dataset data_mu_i --config 24_v15_central --remove-output 10
 #law run ml.GetDatasetLFNs --dataset data_mu_i --config 24_v15_central --limit-dataset-files 1 --remove-output 10
 
-${debug}law run ${task} \
+law run ${task} \
     --version onefile_test \
-    --configs 24_v15_central \
-    --datasets data_mu_i \
-    --producers default \
-    --variables nmu \
-    --categories ceormu \
-    --view-cmd imgcat \
+    --config 24_v15_central \
+    --dataset dy_m50toinf_2j_pt600toinf_amcatnlo \
     --limit-dataset-files 1 \
+    --branch 0 \
     ${1} 
     
-    #--remove-output 10 \
-    # --workflow slurm \
+    #--producers default \
+    #--variables nmu \
+    #--categories ceormu \
+    #--view-cmd imgcat \
+    # --remove-output 10 \
+    # --workflow slurm --retries 1\
     # --workers 1 \
-    # --branch 0 \
     # --parallel-jobs 300 \
     # --print-status 2 \
 
@@ -32,8 +31,6 @@ ${debug}law run ${task} \
     # --log-file slurm
     # --pilot 
 
-# remove outputs (example):
-#   law run cf.SelectEvents --version mytest --remove-output  3
 
 # options: 
 #   --configs: 

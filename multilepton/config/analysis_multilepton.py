@@ -81,7 +81,7 @@ def add_lazy_config(
             # Apply limit from ANALYSIS level to this CONFIG
             limit = analysis_multilepton.x.limit_dataset_files
             if limit > 0:
-                print(f"[Config {config.name}] Applying file limit from analysis: {limit}")
+                print(f"[Config {config.name}] Applying limit_dataset_files={limit}")
                 for dataset in config.datasets:
                     for info in dataset.info.values():
                         # original = info.n_files
