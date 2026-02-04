@@ -139,22 +139,6 @@ def patch_missing_xsec_handling():
 
 
 @memoize
-def patch_slurm_law_jobsh():
-    """
-    Patches the law job_sh due to an issue with the number of python
-    threads on manivald worker nodes + tempdir on /scratch
-    """
-
-    from columnflow.tasks.framework.remote import SlurmWorkflow
-    from law.job.base import JobInputFile
-    from law.util import rel_path
-
-    def slurm_job_file(self):
-        return JobInputFile(os.path.join(rel_path(__file__), "law_job.sh"))
-    SlurmWorkflow.slurm_job_file = slurm_job_file
-
-
-@memoize
 def patch_slurm_partition_setting():
     """
     Patches the slurm remote workflow to allow setting things like partition
@@ -172,9 +156,8 @@ def patch_slurm_partition_setting():
 def patch_all():
     patch_bundle_repo_exclude_files()
     patch_remote_workflow_poll_interval()
-    patch_merge_reduction_stats_inputs()
-    patch_columnar_pyarrow_version()
-    patch_missing_xsec_handling()
     patch_slurm_partition_setting()
-    # patch_slurm_law_jobsh()
+    # patch_merge_reduction_stats_inputs()
+    # patch_columnar_pyarrow_version()
+    # patch_missing_xsec_handling()
     # patch_htcondor_workflow_naf_resources()

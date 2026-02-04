@@ -19,7 +19,7 @@ class MultileptonTask(BaseTask):
     task_namespace = "ml"
     limit_dataset_files = luigi.IntParameter(
         default=-1,
-        significant=False,
+        significant=True,
         description="Limit number of dataset files to process (-1 = all)",
     )
 
@@ -125,12 +125,6 @@ class ProvideReducedEvents(MultileptonTask, CFProvideReducedEvents):
 
 class PlotVariables1D(MultileptonTask, CFPlotVariables1D):
     task_namespace = "ml"
-
-    limit_dataset_files = luigi.IntParameter(
-        default=-1,
-        significant=False,
-        description="Limit number of dataset files to process (-1 = all)",
-    )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
