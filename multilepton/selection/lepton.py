@@ -1036,7 +1036,7 @@ def lepton_selection(
 
                 tight_ok = ok & ((ak.sum(e_mask, axis=1) == 2) & (ak.sum(mu_mask, axis=1) == 1))
                 tight_sel = tight_sel | tight_ok
-
+                trig_match_ok = base_ok
                 if tid in tids.single_e:
                     # emu_from_e — accept ONLY events with e_only (anti-overlap)
                     trig_match_ok = base_ok & e_only & (ak.sum(e_match & e_ctrl, axis=1) >= 1)
