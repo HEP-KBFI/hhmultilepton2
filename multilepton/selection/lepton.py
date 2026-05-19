@@ -162,7 +162,7 @@ def electron_selection(
             (abs(events.Electron.eta) < 2.5) &
             (abs(events.Electron.dxy) < 0.5) &
             (abs(events.Electron.dz) < 1) &
-            (events.Electron.sip3d < 4) &
+            (events.Electron.sip3d < 8) &
             (events.Electron.miniPFRelIso_all < 0.4) &
             (events.Electron.sieie < 0.019) &
             (events.Electron.hoe < 0.1) &
@@ -178,7 +178,7 @@ def electron_selection(
             (abs(events.Electron.eta) < 2.5) &
             (abs(events.Electron.dxy) < 0.5) &
             (abs(events.Electron.dz) < 1) &
-            (events.Electron.sip3d < 4) &
+            (events.Electron.sip3d < 8) &
             (events.Electron.miniPFRelIso_all < 0.4) &
             (events.Electron.lostHits <= 1) &
             atleast_loose
@@ -192,7 +192,7 @@ def electron_selection(
             (abs(events.Electron.eta) < 2.5) &
             (abs(events.Electron.dxy) < 0.5) &
             (abs(events.Electron.dz) < 1) &
-            (events.Electron.sip3d < 4) &
+            (events.Electron.sip3d < 8) &
             (events.Electron.miniPFRelIso_all < 0.4) &
             (events.Electron.sieie < 0.019) &
             (events.Electron.hoe < 0.1) &
