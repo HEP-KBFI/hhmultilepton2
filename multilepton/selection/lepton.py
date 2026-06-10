@@ -87,13 +87,15 @@ def get_cone_pt_from_jetidx(
     jet_phi: ak.Array,
     closestjet_indicies: ak.Array,
     tight_mask: ak.Array,
+    pfRelIso_03_or_04_all: ak.Array,
 ) -> ak.Array:
     """
-    - if the lepton is tight: cone_pt = lepton_pt
+    - if the lepton is tight:
+        cone_pt = lepton_pt
     - else, if the associated jet exists and DeltaR(lepton, jet) < 0.4:
         cone_pt = 0.9 * jet_pt
     - else:
-        cone_pt = lepton_pt
+        cone_pt = 0.9 * lepton_pt * (1 + pfRelIso_03_or_04_all)
     """
 
     good_indicies = closestjet_indicies >= 0
@@ -160,7 +162,7 @@ def get_cone_pt_from_jetidx(
         ak.where(
             has_nearby_jet,
             0.9 * closest_jet_pt,
-            lepton_pt,
+            0.9 * lepton_pt * (1 + pfRelIso_03_or_04_all),
         ),
     )
 
@@ -186,7 +188,7 @@ def electron_selection(
     events: ak.Array,
     trigger: Trigger,
     **kwargs,
-) -> tuple[ak.Array | None, ak.Array]:
+) -> tuple[ak.Array, ak.Array, ak.Array, ak.Array]:
     """
     Electron selection returning three sets of masks and the cone-pT.
     See https://twiki.cern.ch/twiki/bin/view/CMS/EgammaNanoAOD?rev=4
@@ -271,6 +273,7 @@ def electron_selection(
             events.Jet.phi,
             closestjet_indicies,
             tight_mask,
+            events.Electron.pfRelIso03_all,
         )
 
         loose_mask = (
@@ -373,9 +376,9 @@ def muon_selection(
     events: ak.Array,
     trigger: Trigger,
     **kwargs,
-) -> tuple[ak.Array | None, ak.Array]:
+) -> tuple[ak.Array, ak.Array, ak.Array, ak.Array]:
     """
-    Muon selection returning two sets of masks for default and veto muons.
+    Muon selection returning three sets of masks and the cone-pT.
     References:
     - Isolation working point: https://twiki.cern.ch/twiki/bin/view/CMS/SWGuideMuonIdRun2?rev=59
     - ID und ISO : https://twiki.cern.ch/twiki/bin/view/CMS/MuonUL2017?rev=15
@@ -440,6 +443,7 @@ def muon_selection(
             events.Jet.phi,
             closestjet_indicies,
             tight_mask,
+            events.Muon.pfRelIso04_all,
         )
 
         loose_mask = (
