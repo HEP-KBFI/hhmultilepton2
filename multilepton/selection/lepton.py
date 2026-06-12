@@ -1656,7 +1656,7 @@ def lepton_selection(
                         (ak.sum(tau_match & ch_tau_mask, axis=1) >= 1) &
                         (ak.sum(mu_match & mu_ctrl, axis=1) >= 1)
                     )
-                elif tid in cross_tau_tau_any:
+                elif tid in tids.cross_tau_tau_any:
                     trig_match_ok = trig_match_ok & (ak.sum(tau_match & ch_tau_mask, axis=1) >= 1)
 
                 trig_match = trig_match | trig_match_ok
