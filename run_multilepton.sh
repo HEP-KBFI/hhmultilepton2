@@ -1,33 +1,54 @@
 #!/usr/bin/env bash
 
-inherit=ml # "cf" or "ml"
-task=${inherit}.GetDatasetLFNs
-task=${inherit}.SelectEvents
+inherit=cf # "cf" or "ml"
 task=${inherit}.ReduceEvents
 task=${inherit}.PlotVariables1D
 task=${inherit}.ProvideReducedEvents
+task=${inherit}.GetDatasetLFNs
+task=${inherit}.SelectEvents
 
 #law run cf.GetDatasetLFNs --dataset data_mu_i --config 24_v15_central --remove-output 10
 #law run ml.GetDatasetLFNs --dataset data_mu_i --config 24_v15_central --limit-dataset-files 1 --remove-output 10
 
-law run ${task} \
-    --version prod4 \
-    --config 24_v15_central \
-    --dataset qcd_mu_pt15to20_pythia \
-    --workflow slurm --retries 1 --parallel-jobs 300 \
-    ${1} 
+requested_datasets=(
+ data_mu_e
+)
+requested_datasets_not_now=(
+ qcd_mu_pt15to20_pythia
+ qcd_mu_pt20to30_pythia
+ qcd_mu_pt30to50_pythia
+ qcd_mu_pt50to80_pythia
+ qcd_mu_pt80to120_pythia
+ qcd_mu_pt120to170_pythia
+ qcd_mu_pt170to300_pythia
+ qcd_mu_pt300to470_pythia
+ qcd_mu_pt470to600_pythia
+ qcd_mu_pt600to800_pythia
+ qcd_mu_pt800to1000_pythia
+ qcd_mu_pt1000toinf_pythia
+)
+
+for dataset in ${requested_datasets[*]}; do 
+    law run ${task} \
+        --version fixbranches_divergence_from_master_0 \
+        --config 24_v15_central \
+        --dataset $dataset \
+        --retries 1 \
+        --clear-logs --cleanup-jobs \
+        ${inherit}.GetDatasetLFNs --limit-dataset-files 1 \
+        --print-status 2 \
+        ${1} 
+done
     
-    #--limit-dataset-files 1 \
-    #--dataset dy_m50toinf_2j_pt600toinf_amcatnlo --limit-dataset-files 1 \
+    # --parallel-jobs 300 \
+    # --workflow slurm \
     # --branch 0 \
-    # --dataset dy_m50toinf_2j_pt600toinf_amcatnlo \
     # --producers default \
     # --variables nmu \
     # --categories ceormu \
     # --view-cmd imgcat \
     # --remove-output 10 \
     # --workers 1 \
-    # --print-status 2 \
 
     # FIXME to test out the functionality of these
     # --log-file slurm
