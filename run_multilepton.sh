@@ -35,8 +35,7 @@ for dataset in ${requested_datasets[*]}; do
         --dataset $dataset \
         --retries 1 \
         --clear-logs --cleanup-jobs \
-        ${inherit}.GetDatasetLFNs --limit-dataset-files 1 \
-        --print-status 2 \
+        --${inherit}.GetDatasetLFNs-limit-dataset-files 1 \
         ${1} 
 done
     
