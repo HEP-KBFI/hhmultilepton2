@@ -1,14 +1,10 @@
 #!/usr/bin/env bash
 
-inherit=cf # "cf" or "ml"
-task=${inherit}.ReduceEvents
-task=${inherit}.PlotVariables1D
-task=${inherit}.ProvideReducedEvents
-task=${inherit}.GetDatasetLFNs
-task=${inherit}.SelectEvents
-
-#law run cf.GetDatasetLFNs --dataset data_mu_i --config 24_v15_central --remove-output 10
-#law run ml.GetDatasetLFNs --dataset data_mu_i --config 24_v15_central --limit-dataset-files 1 --remove-output 10
+task=cf.ReduceEvents
+task=cf.PlotVariables1D
+task=cf.ProvideReducedEvents
+task=cf.GetDatasetLFNs
+task=cf.SelectEvents
 
 requested_datasets=(
  data_mu_e
@@ -30,12 +26,13 @@ requested_datasets_not_now=(
 
 for dataset in ${requested_datasets[*]}; do 
     law run ${task} \
-        --version fixbranches_divergence_from_master_0 \
+        --version fixbranches_divergence_from_master_1 \
         --config 24_v15_central \
         --dataset $dataset \
         --retries 1 \
-        --clear-logs --cleanup-jobs \
-        --${inherit}.GetDatasetLFNs-limit-dataset-files 1 \
+        --clear-logs \
+        --cleanup-jobs \
+        --limit-dataset-files 1 \
         ${1} 
 done
     
