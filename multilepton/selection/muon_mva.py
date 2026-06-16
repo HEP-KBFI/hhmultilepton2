@@ -10,7 +10,7 @@ from columnflow.util import maybe_import
 
 
 # Model paths (relative to this module or absolute)
-_MODEL_DIR = f"{os.path.dirname(os.path.abspath(__file__))}/../data/mva_model"
+_MODEL_DIR = f"{os.path.dirname(os.path.abspath(__file__))}/../data/mva_model
 _MODEL_PATH = os.path.join(_MODEL_DIR, "mu_xgb_clf.pkl")
 _SCALER_PATH = os.path.join(_MODEL_DIR, "mu_scaler.pkl")
 _FEATURES_PATH = os.path.join(_MODEL_DIR, "mu_features.pkl")
