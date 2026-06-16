@@ -8,10 +8,10 @@ task=cf.SelectEvents
 
 requested_datasets=(
  data_mu_e
+ qcd_mu_pt20to30_pythia
+ wmh_wqq_hbb_powheg
 )
 requested_datasets_not_now=(
- qcd_mu_pt15to20_pythia
- qcd_mu_pt20to30_pythia
  qcd_mu_pt30to50_pythia
  qcd_mu_pt50to80_pythia
  qcd_mu_pt80to120_pythia

@@ -599,19 +599,19 @@ def cat_2j(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array, ak.
     return events, ak.num(events.Jet.pt, axis=1) >= 2
 
 
-@categorizer(uses={"Jet.btagPNetB"})
+@categorizer(uses={"Jet.btagPNetB", "Jet.btagUParTAK4B"})
 def cat_res1b(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array, ak.Array]:
     # exactly pnet b-tags
-    wp = self.config_inst.x.btag_working_points["particleNet"]["medium"]
-    tagged = events.Jet.btagPNetB > wp
+    wp_loose, wp_medium, wp_tight, btag_score = get_btag_info(self, events)
+    tagged = events.Jet.btagPNetB > wp_medium
     return events, ak.sum(tagged, axis=1) == 1
 
 
-@categorizer(uses={"Jet.btagPNetB"})
+@categorizer(uses={"Jet.btagPNetB", "Jet.btagUParTAK4B"})
 def cat_res2b(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array, ak.Array]:
     # at least two medium pnet b-tags
-    wp = self.config_inst.x.btag_working_points["particleNet"]["medium"]
-    tagged = events.Jet.btagPNetB > wp
+    wp_loose, wp_medium, wp_tight, btag_score = get_btag_info(self, events)
+    tagged = events.Jet.btagPNetB > wp_medium
     return events, ak.sum(tagged, axis=1) >= 2
 
 

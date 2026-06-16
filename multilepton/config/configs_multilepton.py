@@ -167,7 +167,7 @@ def bTagWorkingPoints(year, run, campaign):
     elif run == 3:
         taggers = ["deepJet", "particleNet", "robustParticleTransformer", "particleNetMD"]
         if year == 2024:
-            taggers.append("UParTAK4")
+            taggers = ["UParTAK4"]
         valid_eras = ["2022", "2022EE", "2023", "2023BPix", "2024"]
     else:
         raise ValueError(f"Unsupported run: {run}")
