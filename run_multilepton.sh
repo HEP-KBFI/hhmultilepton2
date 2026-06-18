@@ -6,38 +6,47 @@ task=cf.ProvideReducedEvents
 task=cf.GetDatasetLFNs
 task=cf.SelectEvents
 
+version=test_mr11
+workflow=local  #  choices local, slurm, htcondor
+
+#config=22preEE_v14_private
+#config=24_v15_central
+#config=22preEE_v12_central
+config=22postEE_v12_central
+
 requested_datasets=(
  data_mu_e
- qcd_mu_pt20to30_pythia
- wmh_wqq_hbb_powheg
+ ttzz_madgraph
 )
 requested_datasets_not_now=(
+ hh_ggf_htt_htt_kl1_kt1_powheg
+ 
  qcd_mu_pt30to50_pythia
  qcd_mu_pt50to80_pythia
  qcd_mu_pt80to120_pythia
+ qcd_mu_pt1000toinf_pythia
  qcd_mu_pt120to170_pythia
  qcd_mu_pt170to300_pythia
  qcd_mu_pt300to470_pythia
  qcd_mu_pt470to600_pythia
  qcd_mu_pt600to800_pythia
  qcd_mu_pt800to1000_pythia
- qcd_mu_pt1000toinf_pythia
 )
 
 for dataset in ${requested_datasets[*]}; do 
     law run ${task} \
-        --version fixbranches_divergence_from_master_1 \
-        --config 24_v15_central \
-        --dataset $dataset \
+        --config ${config} \
+        --dataset ${dataset} \
+    	--workflow ${workflow} \
+        --version ${version} \
+    	--selector default \
+        --limit-dataset-files 1 \
         --retries 1 \
         --clear-logs \
         --cleanup-jobs \
-        --limit-dataset-files 1 \
         ${1} 
 done
-    
     # --parallel-jobs 300 \
-    # --workflow slurm \
     # --branch 0 \
     # --producers default \
     # --variables nmu \
@@ -45,7 +54,6 @@ done
     # --view-cmd imgcat \
     # --remove-output 10 \
     # --workers 1 \
-
     # FIXME to test out the functionality of these
     # --log-file slurm
     # --pilot 

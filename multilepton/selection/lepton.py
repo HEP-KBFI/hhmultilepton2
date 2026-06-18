@@ -194,12 +194,12 @@ def get_cone_pt_from_jetidx(
         "Electron.{pt,eta,phi,dxy,dz}",
         "Electron.{pfRelIso03_all,seediEtaOriX,seediPhiOriY,sip3d,miniPFRelIso_all,sieie}",
         "Electron.{hoe,eInvMinusPInv,convVeto,lostHits,jetPtRelv2,jetIdx}",
-        "Jet.{pt,eta,phi,btagPNetB,btagUParTAK4B}",
-        IF_NANO_V12("Electron.mvaTTH"),
+        "Jet.{pt,eta,phi}",
+        IF_NANO_V12("Electron.mvaTTH", "Jet.btagPNetB"),
         IF_NANO_V14("Electron.promptMVA"),
-        IF_NANO_V15("Electron.promptMVA"),
+        IF_NANO_V15("Electron.{promptMVA,mvaIso_WPHZZ}", "Jet.{btagPNetB,btagUParTAK4B}"),
         IF_NANO_V9("Electron.mvaFall17V2{Iso_WP80,Iso_WP90}"),
-        IF_NANO_GE_V10("Electron.{mvaIso_WP80,mvaIso_WP90,mvaIso_WPHZZ}"),
+        IF_NANO_GE_V10("Electron.{mvaIso_WP80,mvaIso_WP90}"),
     },
     exposed=False,
 )
@@ -240,7 +240,8 @@ def electron_selection(
         # check this in original root files if necessary
         mva_iso_wp80 = events.Electron.mvaIso_WP80
         mva_iso_wp90 = events.Electron.mvaIso_WP90
-        mva_iso_wphzz = events.Electron.mvaIso_WPHZZ
+        if self.config_inst.campaign.x.version == 15:
+            mva_iso_wphzz = events.Electron.mvaIso_WPHZZ
     else:
         # <= nano v9
         mva_iso_wp80 = events.Electron.mvaFall17V2Iso_WP80
@@ -260,24 +261,24 @@ def electron_selection(
 
         except Exception as e:
             # Fallback to NanoAOD MVA if custom model fails
-            logger.warning(f"Failed to load custom electron MVA model ({e}), falling back to NanoAOD MVA")
+            logger.warning_once(f"Failed to load custom electron MVA model ({e}), falling back to NanoAOD MVA")
             if "promptMVA" in events.Electron.fields:
                 promptMVA = events.Electron.promptMVA
-                logger.info("Using NanoAOD promptMVA (v14+) as fallback")
+                logger.warning_once("Using NanoAOD promptMVA (v14+) as fallback")
             else:
                 promptMVA = events.Electron.mvaTTH
-                logger.info("Using NanoAOD mvaTTH (v<14) as fallback")
+                logger.warning_once("Using NanoAOD mvaTTH (v<14) as fallback")
 
     elif electron_mva_source == "nanoaod":
         # Use NanoAOD default MVA based on version
         if "promptMVA" in events.Electron.fields:
             # >= nano v14
             promptMVA = events.Electron.promptMVA
-            logger.info("Using NanoAOD promptMVA (v14+) for electron selection")
+            logger.warning_once("Using NanoAOD promptMVA (v14+) for electron selection")
         else:
             # nano <v14
             promptMVA = events.Electron.mvaTTH
-            logger.info("Using NanoAOD mvaTTH (v<14) for electron selection")
+            logger.warning_once("Using NanoAOD mvaTTH (v<14) for electron selection")
 
     else:
         raise ValueError(f"Invalid electron_mva_source '{electron_mva_source}'. "
@@ -295,8 +296,10 @@ def electron_selection(
         btag_values_bad = 0 * events.Electron.pt[bad_indicies]
         btag_values_good = events.Jet[closestjet_indicies[~bad_indicies]][btag_discriminator]
         btag_values = ak.concatenate([btag_values_bad, btag_values_good], axis=1)
-        # atleast_medium = ((mva_iso_wp80 == 1) | (mva_iso_wp90 == 1))
-        atleast_loose = ((mva_iso_wp80 == 1) | (mva_iso_wp90 == 1) | (mva_iso_wphzz == 1))
+        if self.config_inst.campaign.x.version == 15:
+            atleast_loose = ((mva_iso_wp80 == 1) | (mva_iso_wp90 == 1) | (mva_iso_wphzz == 1))
+        else:
+            atleast_loose = ((mva_iso_wp80 == 1) | (mva_iso_wp90 == 1))
         tight_mask = (
             (events.Electron.pt > 10) &
             (abs(events.Electron.eta) < 2.5) &
@@ -414,10 +417,10 @@ def electron_trigger_matching(
     uses={
         "Muon.{pt,eta,phi,looseId,mediumId,tightId}",
         "Muon.{pfRelIso04_all,dxy,dz,sip3d,miniPFRelIso_all,jetPtRelv2,jetIdx}",
-        "Jet.{pt,eta,phi,btagPNetB,btagUParTAK4B}",
-        IF_NANO_V12("Muon.mvaTTH"),
+        "Jet.{pt,eta,phi}",
+        IF_NANO_V12("Muon.mvaTTH", "Jet.btagPNetB"),
         IF_NANO_V14("Muon.promptMVA"),
-        IF_NANO_V15("Muon.promptMVA"),
+        IF_NANO_V15("Muon.promptMVA", "Jet.{btagPNetB,btagUParTAK4B}"),
     },
     exposed=False,
 )

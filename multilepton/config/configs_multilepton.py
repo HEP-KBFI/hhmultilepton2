@@ -423,9 +423,10 @@ def add_config(
                       https://twiki.cern.ch/twiki/bin/view/CMS/JetResolution?rev=109
             - Run 3: https://cms-jerc.web.cern.ch/Recommendations/#2022
         """
+
         newyear = year % 100
         jec_uncertainty_sources = analysis_data["jec_sources"]
-
+        
         if run == 2:
             jec_version_map = {2016: "V7", 2017: "V5", 2018: "V5"}
             jer_version_map = {2016: "V3", 2017: "V2", 2018: "V2"}
@@ -447,40 +448,72 @@ def add_config(
                 (2023, ""): "Prompt23",
                 (2023, "BPix"): "Prompt23",
                 (2024, ""): "Prompt24",
+                (2025, ""): "Prompt25",
             }.get((year, campaign.x.postfix))
             jec_version_map = {
-                (2022, ""): "V2",
-                (2022, "EE"): "V2",
-                (2023, ""): "V2",
-                (2023, "BPix"): "V3",
-                (2024, ""): "V1",
+                (2022, ""): "V2",  # soon "V4",
+                (2022, "EE"): "V2",  # soon "V4",
+                (2023, ""): "V2",  # soon "V4",
+                (2023, "BPix"): "V3",  # soon "V4",
+                (2024, ""): "V1", # soon "V3",
+                (2025, ""): "V3",
+            }
+            nibs_version = {
+                "C": 1,
+                "D": 1,
+                "E": 1,
+                #"F": 1,
+                "F": 2,
+                #"G": 1,
+                "G": 2,
+                "H": 1,
+                "I": 1,
+            }
+            # Map from dataset era letter(s) to the JEC era string used in correction names.
+            # For eras that share a single combined correction (e.g. RunCD), every
+            # contributing run letter must map to the same string.
+            jec_era_map = {
+                (2022, ""): {"C": "RunCD", "D": "RunCD"},
+                (2022, "EE"): {"E": "RunE", "F": "RunF", "G": "RunG"},
+                (2023, ""): {"C": "RunCv123", "C4": "RunCv4"},
+                (2023, "BPix"): {"D": "RunD"},
+                (2024, ""): {p: f"Run{p}nib{nibs_version[p]}" for p in nibs_version},
+                (2025, ""): {},  # fill in when corrections are available
             }
             if not jerc_postfix:
                 raise ValueError(f"Unsupported JERC configuration for Run 3: year={year}, postfix={campaign.x.postfix}")  # noqa: E501
-            jec_campaign = f"Summer{newyear}{campaign.x.postfix}{jerc_postfix}"
-            jer_campaign = f"Summer{newyear}{campaign.x.postfix}{jerc_postfix}"
-            # For the time being, use the Summer23BPix JERs for 2024 data.
-            # The JER MC_ScaleFactor and MC_PtResolution for the Summer24 samples
-            # will be announced soon (expected by the end of October 2025).
-            if year == 2024:
-                jer_campaign = "Summer23BPixPrompt23_RunD"
-            # Add special Run fragment for 2023
+            
+            if year == 2025: 
+                season = "Winter"
+            else: 
+                season = "Summer"
+            
+            jec_campaign = f"{season}{newyear}{campaign.x.postfix}{jerc_postfix}"
+            jer_campaign = f"{season}{newyear}{campaign.x.postfix}{jerc_postfix}"
+            
+            if year == 2025:
+                jer_campaign = jer_campaign.replace("Winter25", "Summer24") # preliminary file that's why
             if year == 2023:
                 jer_campaign += f"_Run{'Cv1234' if campaign.has_tag('preBPix') else 'D'}"
+            _era_map = jec_era_map.get((year, campaign.x.postfix), {})
+            # Build inverse mapping: era string → list of run letters (for JER campaign suffix)
+            _first_era = next(iter(_era_map.values()), "RunCD") if _era_map else "RunCD"
             jecjerdb = {
                 "jec_campaign": jec_campaign,
                 "jec_version": jec_version_map[(year, campaign.x.postfix)],
-                "jer_campaign": jer_campaign,
-                "jer_version": "JR" + {2022: "V1", 2023: "V1", 2024: "V1"}[year],
+                "jec_era_map": _era_map,
+                "jer_campaign": jer_campaign + _first_era,
+                # soon "jer_version": "JR" + {2022: "V2", 2023: "V2", 2024: "V1", 2025: "V1"}[year],
+                "jer_version": "JR" + {2022: "V1", 2023: "V1", 2024: "V1", 2025: "V1"}[year],
                 "jet_type": "AK4PFPuppi",
-                "data_per_era": year == 2022,  # 2022 JEC depends on era
+                "data_per_era": True,
             }
 
         if year in [2024, 2022]:
             for src in ["TimeRunA", "TimeRunB", "TimeRunC", "TimeRunD"]:
                 if src in jec_uncertainty_sources:
                     jec_uncertainty_sources.remove(src)
-
+        
         cfg.x.jec = DotDict.wrap({
             "Jet": {
                 "campaign": jecjerdb["jec_campaign"],
@@ -492,6 +525,9 @@ def add_config(
                 "uncertainty_sources": jec_uncertainty_sources,
             },
         })
+        # Store the run-letter → JEC-era-string mapping on the config so datasets
+        # can be tagged with the correct jec_era (e.g. "D" → "RunCD") later.
+        cfg.x.jec_era_map = jecjerdb.get("jec_era_map", {})
 
         cfg.x.jer = DotDict.wrap({
             "Jet": {
@@ -666,6 +702,8 @@ def add_config(
     cfg.x.btag_sf_jec_sources = btagJECsources
     cfg.x.btag_working_points = bTagWorkingPoints(year, run, campaign)
 
+    cfg.x.jet_id_has_multiplicity = campaign.x.version >= 15
+
     # Configure custom MVA models for lepton selection
     # Options: "custom" (XGBoost trained model), "nanoaod" (default NanoAOD MVA)
     cfg.x.electron_mva_source = "custom"
@@ -776,6 +814,15 @@ def add_config(
                     # https://cms-talk.web.cern.ch/t/noise-met-filters-in-run-3/63346/5
                     if y == 2022 and dataset.is_data and dataset.x.era in "FG":
                         dataset.add_tag("broken_ecalBadCalibFilter")
+                    # Set jec_era so columnflow picks the right per-run DATA correction.
+                    # dataset.x.era is a single letter (e.g. "D"); map it to the combined
+                    # era string used in the correction file (e.g. "RunCD").
+                    era_letter = getattr(dataset.x, "era", "")
+                    jec_era = cfg.x.jec_era_map.get(era_letter)
+                    if jec_era is None and era_letter:
+                        jec_era = f"Run{era_letter}"  # fallback: RunD, RunE, …
+                    if jec_era:
+                        dataset.x.jec_era = jec_era
 
     # verify that the root process of each dataset is part of any of the registered processes
     verify_config_processes(cfg, warn=True)
@@ -872,6 +919,7 @@ def add_config(
     stylize_processes(cfg, datasets_config)
     # Configure colors, labels, etc
     setup_plot_styles(cfg, analysis_data.get("plot_defaults", {}))
+   
 
     # =============================================
     # met settings
