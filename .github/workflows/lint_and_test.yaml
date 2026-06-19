@@ -9,7 +9,7 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     env:
-      CF_SKIP_SETUP: "true"
+      CF_SKIP_SETUP: "false"
     steps:
       - name: Checkout ⬇️
         uses: actions/checkout@master
@@ -24,12 +24,13 @@ jobs:
 
       - name: Install dependencies ☕️
         run: |
-          export CF_SKIP_SETUP="true"
+          #export CF_SKIP_SETUP="true"
           source setup.sh ""
 
       - name: Lint 🔍
         run: |
-          export CF_SKIP_SETUP="true"
+          #export CF_SKIP_SETUP="true"
           source setup.sh ""
           ./tests/run_linting
+          ./tests/run_analysis
 
