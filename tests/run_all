@@ -38,8 +38,6 @@ action() {
         cecho 32 "done"
     fi
 
-    return "${ret_global}"
-
     # columnflow integration tests (same as local dev, --limit-dataset-files 1)
     cecho 35 "check columnflow analysis ..."
     bash "${this_dir}/run_analysis"
@@ -51,6 +49,8 @@ action() {
     else
         cecho 32 "done"
     fi
+    
+    return "${ret_global}"
 
 }
 action "$@"
