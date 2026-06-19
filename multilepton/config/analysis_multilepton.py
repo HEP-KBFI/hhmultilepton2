@@ -19,8 +19,6 @@ from multilepton.config.configs_multilepton import add_config
 # Analysis Definition
 # =======================================
 analysis_multilepton = od.Analysis(name="analysis_multilepton", id=1)
-analysis_multilepton.x.get_dataset_lfns_cls = "ml.GetDatasetLFNs"
-analysis_multilepton.x.limit_dataset_files = -1  # Default: no limit
 
 # Use lookup from law.cfg
 analysis_multilepton.x.versions = {}
@@ -59,7 +57,6 @@ def add_lazy_config(
     campaign_attr: str,
     config_name: str,
     config_id: int,
-    add_limited: bool = False,
     **kwargs,
 ) -> None:
     """Register a lazily-created configuration into the multilepton analysis."""
@@ -67,7 +64,6 @@ def add_lazy_config(
     def create_factory(
         config_id: int,
         config_name_postfix: str = "",
-        file_limit: int | None = None,
     ):
         def factory(configs):
             mod = importlib.import_module(campaign_module)
@@ -79,31 +75,10 @@ def add_lazy_config(
                 config_id=config_id,
                 **kwargs,
             )
-            limit = (
-                file_limit
-                if file_limit is not None
-                else analysis_multilepton.x.limit_dataset_files
-            )
-
-            if limit > 0:
-                print(f"[Config {config.name}] Applying limit_dataset_files={limit}")
-                for dataset in config.datasets:
-                    for info in dataset.info.values():
-                        # original = info.n_files
-                        info.n_files = min(info.n_files, limit)
-                        # if original != info.n_files:
-                        #    logger.warning(f"  Limited {dataset.name}: {original} → {info.n_files}")
             return config
         return factory
 
     analysis_multilepton.configs.add_lazy_factory(config_name, create_factory(config_id))
-
-    if add_limited:
-        limited_name = f"{config_name}_limited"
-        analysis_multilepton.configs.add_lazy_factory(
-            limited_name,
-            create_factory(config_id + 200, "_limited", 1),  # 1 here is hardcoded limit for "_limited"
-        )
 
 
 # =======================================
@@ -131,5 +106,4 @@ for module, name, cid in datasets:
         campaign_attr=f"campaign_{module.split('.')[-1]}",
         config_name=name,
         config_id=cid,
-        add_limited=True,  # Add a limited version of each config for testing purposes
     )

@@ -7,11 +7,12 @@ HH -> multi-leptons selection methods.
 from columnflow.categorization import Categorizer, categorizer
 from columnflow.util import maybe_import
 
+from multilepton.util import IF_NANO_V12, IF_NANO_V15
+
 ak = maybe_import("awkward")
 
+
 # Helper to handle the taggers configuration
-
-
 def get_btag_info(self: Categorizer, events: ak.Array):
     year = self.config_inst.campaign.x.year
 
@@ -207,7 +208,7 @@ def cat_mu2tau(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array,
     return events, events.channel_id == self.config_inst.channels.n.cmu2tau.id
 
 
-@categorizer(uses={"channel_id", "Jet.btagPNetB", "Jet.btagUParTAK4B",
+@categorizer(uses={"channel_id", IF_NANO_V12("Jet.btagPNetB"), IF_NANO_V15("Jet.{btagPNetB,btagUParTAK4B}"),
                    "tight_sel", "Electron.charge", "Muon.charge", "leptons_os"})
 def cat_2lSS1tauOS_SR(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array, ak.Array]:
     catmask = events.channel_id == self.config_inst.channels.n.c2eSS1tau.id
@@ -221,7 +222,7 @@ def cat_2lSS1tauOS_SR(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak
     return events, (catmask & bveto & SR & OS)
 
 
-@categorizer(uses={"channel_id", "Jet.btagPNetB", "Jet.btagUParTAK4B",
+@categorizer(uses={"channel_id", IF_NANO_V12("Jet.btagPNetB"), IF_NANO_V15("Jet.{btagPNetB,btagUParTAK4B}"),
                    "tight_sel", "Electron.charge", "Muon.charge", "leptons_os"})
 def cat_2lOS1tauSS_SR(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array, ak.Array]:
     catmask = events.channel_id == self.config_inst.channels.n.c2eSS1tau.id
@@ -235,7 +236,7 @@ def cat_2lOS1tauSS_SR(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak
     return events, (catmask & bveto & SR & WS)
 
 
-@categorizer(uses={"channel_id", "Jet.btagPNetB", "Jet.btagUParTAK4B",
+@categorizer(uses={"channel_id", IF_NANO_V12("Jet.btagPNetB"), IF_NANO_V15("Jet.{btagPNetB,btagUParTAK4B}"),
                    "tight_sel", "Electron.charge", "Muon.charge", "leptons_os"})
 def cat_2lSS1tauOS_SB(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array, ak.Array]:
     catmask = events.channel_id == self.config_inst.channels.n.c2eSS1tau.id
@@ -249,7 +250,7 @@ def cat_2lSS1tauOS_SB(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak
     return events, (catmask & bveto & SR & OS)
 
 
-@categorizer(uses={"channel_id", "Jet.btagPNetB", "Jet.btagUParTAK4B",
+@categorizer(uses={"channel_id", IF_NANO_V12("Jet.btagPNetB"), IF_NANO_V15("Jet.{btagPNetB,btagUParTAK4B}"),
                    "tight_sel", "Electron.charge", "Muon.charge", "leptons_os"})
 def cat_2lOS1tauSS_SB(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array, ak.Array]:
     catmask = events.channel_id == self.config_inst.channels.n.c2eSS1tau.id
@@ -263,7 +264,7 @@ def cat_2lOS1tauSS_SB(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak
     return events, (catmask & bveto & SR & WS)
 
 
-@categorizer(uses={"channel_id", "Jet.btagPNetB", "Jet.btagUParTAK4B",
+@categorizer(uses={"channel_id", IF_NANO_V12("Jet.btagPNetB"), IF_NANO_V15("Jet.{btagPNetB,btagUParTAK4B}"),
                    "tight_sel", "Electron.charge", "Muon.charge", "leptons_os"})
 def cat_2lSS_SR(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array, ak.Array]:
     catmask = events.channel_id == self.config_inst.channels.n.c2eSS.id
@@ -277,7 +278,7 @@ def cat_2lSS_SR(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array
     return events, (catmask & bveto & SR & SS)
 
 
-@categorizer(uses={"channel_id", "Jet.btagPNetB", "Jet.btagUParTAK4B",
+@categorizer(uses={"channel_id", IF_NANO_V12("Jet.btagPNetB"), IF_NANO_V15("Jet.{btagPNetB,btagUParTAK4B}"),
                    "tight_sel", "Electron.charge", "Muon.charge", "leptons_os"})
 def cat_2lOS_SR(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array, ak.Array]:
     catmask = events.channel_id == self.config_inst.channels.n.c2eSS.id
@@ -291,7 +292,7 @@ def cat_2lOS_SR(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array
     return events, (catmask & bveto & SR & OS)
 
 
-@categorizer(uses={"channel_id", "Jet.btagPNetB", "Jet.btagUParTAK4B",
+@categorizer(uses={"channel_id", IF_NANO_V12("Jet.btagPNetB"), IF_NANO_V15("Jet.{btagPNetB,btagUParTAK4B}"),
                    "tight_sel", "Electron.charge", "Muon.charge", "leptons_os"})
 def cat_2lSS_SB(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array, ak.Array]:
     catmask = events.channel_id == self.config_inst.channels.n.c2eSS.id
@@ -305,7 +306,7 @@ def cat_2lSS_SB(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array
     return events, (catmask & bveto & SR & SS)
 
 
-@categorizer(uses={"channel_id", "Jet.btagPNetB", "Jet.btagUParTAK4B",
+@categorizer(uses={"channel_id", IF_NANO_V12("Jet.btagPNetB"), IF_NANO_V15("Jet.{btagPNetB,btagUParTAK4B}"),
                    "tight_sel", "Electron.charge", "Muon.charge", "leptons_os"})
 def cat_2lOS_SB(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array, ak.Array]:
     catmask = events.channel_id == self.config_inst.channels.n.c2eSS.id
@@ -319,7 +320,7 @@ def cat_2lOS_SB(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array
     return events, (catmask & bveto & SR & OS)
 
 
-@categorizer(uses={"channel_id", "Jet.btagPNetB", "Jet.btagUParTAK4B",
+@categorizer(uses={"channel_id", IF_NANO_V12("Jet.btagPNetB"), IF_NANO_V15("Jet.{btagPNetB,btagUParTAK4B}"),
                    "tight_sel", "Electron.charge", "Muon.charge", "leptons_os"})
 def cat_1l2tau_SR(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array, ak.Array]:
     catmask = events.channel_id == self.config_inst.channels.n.ce2tau.id
@@ -332,7 +333,7 @@ def cat_1l2tau_SR(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Arr
     return events, (catmask & bveto & SR & OS)
 
 
-@categorizer(uses={"channel_id", "Jet.btagPNetB", "Jet.btagUParTAK4B",
+@categorizer(uses={"channel_id", IF_NANO_V12("Jet.btagPNetB"), IF_NANO_V15("Jet.{btagPNetB,btagUParTAK4B}"),
                    "tight_sel", "Electron.charge", "Muon.charge", "leptons_os"})
 def cat_1l2tau_SB(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array, ak.Array]:
     catmask = events.channel_id == self.config_inst.channels.n.ce2tau.id
@@ -346,7 +347,7 @@ def cat_1l2tau_SB(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Arr
 
 
 # 3l/4l inclusive, later split into CR / SR via Z-peak
-@categorizer(uses={"channel_id", "Jet.btagPNetB", "Jet.btagUParTAK4B",
+@categorizer(uses={"channel_id", IF_NANO_V12("Jet.btagPNetB"), IF_NANO_V15("Jet.{btagPNetB,btagUParTAK4B}"),
                    "tight_sel", "Electron.charge", "Muon.charge", "leptons_os"})
 def cat_3l0tau_SR(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array, ak.Array]:
     catmask = events.channel_id == self.config_inst.channels.n.c3e.id
@@ -361,7 +362,7 @@ def cat_3l0tau_SR(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Arr
     return events, (catmask & bveto & SR & chargeok)
 
 
-@categorizer(uses={"channel_id", "Jet.btagPNetB", "Jet.btagUParTAK4B",
+@categorizer(uses={"channel_id", IF_NANO_V12("Jet.btagPNetB"), IF_NANO_V15("Jet.{btagPNetB,btagUParTAK4B}"),
                    "tight_sel", "Electron.charge", "Muon.charge", "leptons_os"})
 def cat_3l0tau_SB(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array, ak.Array]:
     catmask = events.channel_id == self.config_inst.channels.n.c3e.id
@@ -376,7 +377,7 @@ def cat_3l0tau_SB(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Arr
     return events, (catmask & bveto & SB & chargeok)
 
 
-@categorizer(uses={"channel_id", "Jet.btagPNetB", "Jet.btagUParTAK4B",
+@categorizer(uses={"channel_id", IF_NANO_V12("Jet.btagPNetB"), IF_NANO_V15("Jet.{btagPNetB,btagUParTAK4B}"),
                    "tight_sel", "Electron.charge", "Muon.charge", "leptons_os"})
 def cat_4l_SR(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array, ak.Array]:
     catmask = events.channel_id == self.config_inst.channels.n.c4e.id
@@ -392,7 +393,7 @@ def cat_4l_SR(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array, 
     return events, (catmask & bveto & SR & chargeok)
 
 
-@categorizer(uses={"channel_id", "Jet.btagPNetB", "Jet.btagUParTAK4B",
+@categorizer(uses={"channel_id", IF_NANO_V12("Jet.btagPNetB"), IF_NANO_V15("Jet.{btagPNetB,btagUParTAK4B}"),
                    "tight_sel", "Electron.charge", "Muon.charge", "leptons_os"})
 def cat_4l_SB(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array, ak.Array]:
     catmask = events.channel_id == self.config_inst.channels.n.c4e.id
@@ -408,7 +409,10 @@ def cat_4l_SB(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array, 
     return events, (catmask & bveto & SB & chargeok)
 
 
-@categorizer(uses={"channel_id", "Jet.btagPNetB", "Jet.btagUParTAK4B", "tight_sel", "Electron.charge", "Muon.charge",
+@categorizer(uses={"channel_id",
+    IF_NANO_V12("Jet.btagPNetB"),
+    IF_NANO_V15("Jet.{btagPNetB,btagUParTAK4B}"),
+    "tight_sel", "Electron.charge", "Muon.charge",
     "Tau.charge", "leptons_os"})
 def cat_3l1tau_SR(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array, ak.Array]:
     catmask = events.channel_id == self.config_inst.channels.n.c3etau.id
@@ -423,7 +427,10 @@ def cat_3l1tau_SR(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Arr
     return events, (catmask & bveto & SR & chargeok)
 
 
-@categorizer(uses={"channel_id", "Jet.btagPNetB", "Jet.btagUParTAK4B", "tight_sel", "Electron.charge", "Muon.charge",
+@categorizer(uses={"channel_id",
+    IF_NANO_V12("Jet.btagPNetB"),
+    IF_NANO_V15("Jet.{btagPNetB,btagUParTAK4B}"),
+    "tight_sel", "Electron.charge", "Muon.charge",
     "Tau.charge", "leptons_os"})
 def cat_3l1tau_SB(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array, ak.Array]:
     catmask = events.channel_id == self.config_inst.channels.n.c3etau.id
@@ -438,7 +445,10 @@ def cat_3l1tau_SB(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Arr
     return events, (catmask & bveto & SB & chargeok)
 
 
-@categorizer(uses={"channel_id", "Jet.btagPNetB", "Jet.btagUParTAK4B", "tight_sel", "Electron.charge", "Muon.charge",
+@categorizer(uses={"channel_id",
+    IF_NANO_V12("Jet.btagPNetB"),
+    IF_NANO_V15("Jet.{btagPNetB,btagUParTAK4B}"),
+    "tight_sel", "Electron.charge", "Muon.charge",
     "Tau.charge", "leptons_os"})
 def cat_2l2tau_SR(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array, ak.Array]:
     catmask = events.channel_id == self.config_inst.channels.n.c2e2tau.id
@@ -452,7 +462,10 @@ def cat_2l2tau_SR(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Arr
     return events, (catmask & bveto & SR & chargeok)
 
 
-@categorizer(uses={"channel_id", "Jet.btagPNetB", "Jet.btagUParTAK4B", "tight_sel", "Electron.charge", "Muon.charge",
+@categorizer(uses={"channel_id",
+    IF_NANO_V12("Jet.btagPNetB"),
+    IF_NANO_V15("Jet.{btagPNetB,btagUParTAK4B}"),
+    "tight_sel", "Electron.charge", "Muon.charge",
     "Tau.charge", "leptons_os"})
 def cat_2l2tau_SB(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array, ak.Array]:
     catmask = events.channel_id == self.config_inst.channels.n.c2e2tau.id
@@ -466,7 +479,10 @@ def cat_2l2tau_SB(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Arr
     return events, (catmask & bveto & SB & chargeok)
 
 
-@categorizer(uses={"channel_id", "Jet.btagPNetB", "Jet.btagUParTAK4B", "tight_sel", "Electron.charge", "Muon.charge",
+@categorizer(uses={"channel_id",
+    IF_NANO_V12("Jet.btagPNetB"),
+    IF_NANO_V15("Jet.{btagPNetB,btagUParTAK4B}"),
+    "tight_sel", "Electron.charge", "Muon.charge",
     "Tau.charge", "leptons_os"})
 def cat_1l3tau_SR(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array, ak.Array]:
     catmask = events.channel_id == self.config_inst.channels.n.ce3tau.id
@@ -479,7 +495,10 @@ def cat_1l3tau_SR(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Arr
     return events, (catmask & bveto & SR & chargeok)
 
 
-@categorizer(uses={"channel_id", "Jet.btagPNetB", "Jet.btagUParTAK4B", "tight_sel", "Electron.charge",
+@categorizer(uses={"channel_id",
+    IF_NANO_V12("Jet.btagPNetB"),
+    IF_NANO_V15("Jet.{btagPNetB,btagUParTAK4B}"),
+    "tight_sel", "Electron.charge",
     "Muon.charge", "Tau.charge", "leptons_os"})
 def cat_1l3tau_SB(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array, ak.Array]:
     catmask = events.channel_id == self.config_inst.channels.n.ce3tau.id
@@ -492,7 +511,10 @@ def cat_1l3tau_SB(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Arr
     return events, (catmask & bveto & SB & chargeok)
 
 
-@categorizer(uses={"channel_id", "Jet.btagPNetB", "Jet.btagUParTAK4B", "tight_sel", "Tau.charge", "leptons_os"})
+@categorizer(uses={"channel_id",
+    IF_NANO_V12("Jet.btagPNetB"),
+    IF_NANO_V15("Jet.{btagPNetB,btagUParTAK4B}"),
+    "tight_sel", "Tau.charge", "leptons_os"})
 def cat_4tau_SR(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array, ak.Array]:
     catmask = events.channel_id == self.config_inst.channels.n.c4tau.id
     wp_loose, wp_medium, wp_tight, btag_score = get_btag_info(self, events)
@@ -503,7 +525,10 @@ def cat_4tau_SR(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array
     return events, (catmask & bveto & SR & chargeok)
 
 
-@categorizer(uses={"channel_id", "Jet.btagPNetB", "Jet.btagUParTAK4B", "tight_sel", "Tau.charge", "leptons_os"})
+@categorizer(uses={"channel_id",
+    IF_NANO_V12("Jet.btagPNetB"),
+    IF_NANO_V15("Jet.{btagPNetB,btagUParTAK4B}"),
+    "tight_sel", "Tau.charge", "leptons_os"})
 def cat_4tau_SB(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array, ak.Array]:
     catmask = events.channel_id == self.config_inst.channels.n.c4tau.id
     wp_loose, wp_medium, wp_tight, btag_score = get_btag_info(self, events)
@@ -515,7 +540,7 @@ def cat_4tau_SB(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array
 
 
 # bveto
-@categorizer(uses={"Jet.btagPNetB", "Jet.btagUParTAK4B"})
+@categorizer(uses={IF_NANO_V12("Jet.btagPNetB"), IF_NANO_V15("Jet.{btagPNetB,btagUParTAK4B}")})
 def cat_bveto_on(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array, ak.Array]:
     wp_loose, wp_medium, wp_tight, btag_score = get_btag_info(self, events)
     tagged_tight = btag_score > wp_tight
@@ -528,7 +553,7 @@ def cat_eormu(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array, 
     return events, events.ok_bdt_eormu == 1
 
 
-@categorizer(uses={"ok_bdt_eormu", "Jet.btagPNetB", "Jet.btagUParTAK4B"})
+@categorizer(uses={"ok_bdt_eormu", IF_NANO_V12("Jet.btagPNetB"), IF_NANO_V15("Jet.{btagPNetB,btagUParTAK4B}")})
 def cat_eormu_bveto(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array, ak.Array]:
     wp_loose, wp_medium, wp_tight, btag_score = get_btag_info(self, events)
     tagged_tight = btag_score > wp_tight
@@ -599,7 +624,7 @@ def cat_2j(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array, ak.
     return events, ak.num(events.Jet.pt, axis=1) >= 2
 
 
-@categorizer(uses={"Jet.btagPNetB", "Jet.btagUParTAK4B"})
+@categorizer(uses={IF_NANO_V12("Jet.btagPNetB"), IF_NANO_V15("Jet.{btagPNetB,btagUParTAK4B}")})
 def cat_res1b(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array, ak.Array]:
     # exactly pnet b-tags
     wp_loose, wp_medium, wp_tight, btag_score = get_btag_info(self, events)
@@ -607,7 +632,7 @@ def cat_res1b(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array, 
     return events, ak.sum(tagged, axis=1) == 1
 
 
-@categorizer(uses={"Jet.btagPNetB", "Jet.btagUParTAK4B"})
+@categorizer(uses={IF_NANO_V12("Jet.btagPNetB"), IF_NANO_V15("Jet.{btagPNetB,btagUParTAK4B}")})
 def cat_res2b(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array, ak.Array]:
     # at least two medium pnet b-tags
     wp_loose, wp_medium, wp_tight, btag_score = get_btag_info(self, events)

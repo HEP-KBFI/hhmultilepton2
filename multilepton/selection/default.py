@@ -141,16 +141,18 @@ def default(
     results += trigger_results
 
     # HH truth selector (find Higgs bosons) - INDEPENDENT, runs before lepton selection
-    events, hh_results = self[hh_truth_selector](events, **kwargs)
-    results += hh_results
+    if self.dataset_inst.is_mc:
+        events, hh_results = self[hh_truth_selector](events, **kwargs)
+        results += hh_results
 
     # lepton selection
     events, lepton_results = self[lepton_selection](events, trigger_results, **kwargs)
     results += lepton_results
 
     # gen-matching selection (match selected leptons to generator level) - DEPENDENT on lepton_selection
-    events, gen_matching_results = self[gen_matching_selection](events, **kwargs)
-    results += gen_matching_results
+    if self.dataset_inst.is_mc:
+        events, gen_matching_results = self[gen_matching_selection](events, **kwargs)
+        results += gen_matching_results
 
     # jet selection
     events, jet_results = self[jet_selection](events, trigger_results, lepton_results, **kwargs)

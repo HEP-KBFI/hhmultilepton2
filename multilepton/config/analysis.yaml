@@ -68,6 +68,15 @@ years:
       - lumi_13p6TeV_correlated: 0.013
     certified_lumi_file: https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions24/Cert_Collisions2024_378981_386951_Golden.json
     normtag: https://cms-service-dqmdc.web.cern.ch/CAF/certification/Run3/normtag_BRIL.json
+  2025:
+    run: 3
+    campaigns: [""]
+    luminosity: 1090.08  # pb
+    luminosity-error: 0.013
+    luminosity-uncertainties:
+      - lumi_13p6TeV_correlated: 0.013
+    certified_lumi_file: https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions25/Cert_Collisions2025_391658_391953_Golden.json
+    normtag: https://cms-service-dqmdc.web.cern.ch/CAF/certification/Run3/normtag_BRIL.json
 
 custom_processes:
 
@@ -86,6 +95,8 @@ datasets:
           periods: &postBPix_periods [d1, d2]
     2024:
       periods: [c, d, e, f, g, h, i]
+    2025:
+      periods: [c, d, e, f, g]
 
   signal:
     resonant:

@@ -13,6 +13,8 @@ from columnflow.selection import Selector, SelectionResult, selector
 from columnflow.columnar_util import set_ak_column, full_like
 from columnflow.util import maybe_import
 
+from multilepton.util import IF_NANO_V12, IF_NANO_V15
+
 np = maybe_import("numpy")
 ak = maybe_import("awkward")
 logger = law.logger.get_logger(__name__)
@@ -43,18 +45,40 @@ logger = law.logger.get_logger(__name__)
 #   0  = jet faking tau
 # ====================================================================
 
+# Helper to handle the taggers configuration
+def get_btag_info(self: Selector, events: ak.Array):
+    year = self.config_inst.campaign.x.year
+
+    if year in {2024, 2025, 2026}:
+        btag_tagger = "UParTAK4"
+        btag_discriminator = "btagUParTAK4B"
+    else:
+        btag_tagger = "particleNet"
+        btag_discriminator = "btagPNetB"
+
+    wp_loose = self.config_inst.x.btag_working_points[btag_tagger]["loose"]
+    wp_medium = self.config_inst.x.btag_working_points[btag_tagger]["medium"]
+    wp_tight = self.config_inst.x.btag_working_points[btag_tagger]["tight"]
+
+    btag_score = events.Jet[btag_discriminator]
+
+    return wp_loose, wp_medium, wp_tight, btag_score
+
 
 @selector(
     uses={
+        "channel_id",
         "Electron.genPartFlav",
         "Electron.charge",
+        "ElectronLoose",
         "Muon.genPartFlav",
         "Muon.charge",
+        "MuonLoose",
         "Tau.genPartFlav",
         "Tau.charge",
-        "channel_id",
-        "ElectronLoose", "MuonLoose", "TauIso",
-        "Jet.btagPNetB",
+        "TauIso",
+        IF_NANO_V12("Jet.btagPNetB"),
+        IF_NANO_V15("Jet.{btagPNetB,btagUParTAK4B}"),
     },
     produces={
         "gen_match_category",                    # fakes/flips/conversions/nonfakes
@@ -91,7 +115,7 @@ def gen_matching_selection(
             },
         )
 
-    logger.info("Running Run3 genPartFlav-based gen_matching_selection")
+    logger.info_once("Running Run3 genPartFlav-based gen_matching_selection")
     apply_lepton_gen_matching = bool(self.config_inst.x("apply_lepton_gen_matching", True))
     apply_hadTau_gen_matching = bool(self.config_inst.x("apply_hadTau_gen_matching", True))
     use_flips = bool(self.config_inst.x("use_flips", False))
@@ -177,10 +201,9 @@ def gen_matching_selection(
     # ── B-jet veto (same working points as categorization/default.py) ─────────
     # passes_bveto = True when the event would pass the b-veto used in the SR:
     #   nLooseBjets < 2  AND  nMediumBjets < 1
-    wp_loose = self.config_inst.x.btag_working_points["particleNet"]["loose"]    # FIX E221
-    wp_medium = self.config_inst.x.btag_working_points["particleNet"]["medium"]  # FIX E221
-    tagged_loose = events.Jet.btagPNetB > wp_loose                               # FIX E221
-    tagged_medium = events.Jet.btagPNetB > wp_medium
+    wp_loose, wp_medium, wp_tight, btag_score = get_btag_info(self, events)
+    tagged_loose = btag_score > wp_loose
+    tagged_medium = btag_score > wp_medium
     passes_bveto = (ak.sum(tagged_loose, axis=1) < 2) & (ak.sum(tagged_medium, axis=1) < 1)
 
     # Store columns

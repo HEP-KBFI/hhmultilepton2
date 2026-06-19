@@ -28,11 +28,15 @@ ak = maybe_import("awkward")
 
 @selector(
     uses={
-        jet_id, fatjet_id,
-        "fired_trigger_ids", "TrigObj.{pt,eta,phi}",
-        "Jet.{pt,eta,phi,mass}", IF_NOT_NANO_V15("Jet.jetId"), IF_RUN_2("Jet.puId"),
-        "FatJet.{pt,eta,phi,mass,msoftdrop,subJetIdx1,subJetIdx2}", IF_NOT_NANO_V15("FatJet.jetId"),
-        "SubJet.{pt,eta,phi,mass}", IF_NOT_NANO_V15("SubJet.btagDeepB"),
+        "fired_trigger_ids",
+        "TrigObj.{pt,eta,phi}",
+        "Jet.{pt,eta,phi,mass}",
+        "FatJet.{pt,eta,phi,mass,msoftdrop,subJetIdx1,subJetIdx2}",
+        "SubJet.{pt,eta,phi,mass}",
+        jet_id,
+        fatjet_id,
+        IF_NOT_NANO_V15("SubJet.btagDeepB", "FatJet.jetId", "Jet.jetId"),
+        IF_RUN_2("Jet.puId"),
     },
     produces={
         # hhbtag,
@@ -61,8 +65,9 @@ def jet_selection(
     li = ak.local_index(events.Jet)
 
     # recompute jet ids
-    events = self[jet_id](events, **kwargs)
-    events = self[fatjet_id](events, **kwargs)
+    if self.config_inst.x.jet_id_has_multiplicity:
+        events = self[jet_id](events, **kwargs)
+        events = self[fatjet_id](events, **kwargs)
 
     #
     # default jet selection

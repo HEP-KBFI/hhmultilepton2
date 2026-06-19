@@ -38,7 +38,7 @@ def hh_truth_selector(
             },
         )
 
-    logger.info("Running GEN HH SELECTOR")
+    logger.info_once("Running GenPart hh_truth_selector ...")
 
     gen = events.GenPart
 
