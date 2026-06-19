@@ -39,5 +39,18 @@ action() {
     fi
 
     return "${ret_global}"
+
+    # columnflow integration tests (same as local dev, --limit-dataset-files 1)
+    cecho 35 "check columnflow analysis ..."
+    bash "${this_dir}/run_analysis"
+    ret="$?"
+    if [ "${ret}" != "0" ]; then
+        2>&1 cecho 31 "run_analysis failed with exit code ${ret}"
+        [ "${mode}" = "force" ] || return "${ret}"
+        ret_global="1"
+    else
+        cecho 32 "done"
+    fi
+
 }
 action "$@"
