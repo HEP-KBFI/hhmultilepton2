@@ -457,6 +457,7 @@ def add_config(
                 (2024, ""): "V1",  # soon "V3",
                 (2025, ""): "V3",
             }
+            """
             nibs_version = {
                 "C": 1,
                 "D": 1,
@@ -468,6 +469,7 @@ def add_config(
                 "H": 1,
                 "I": 1,
             }
+            """
             # Map from dataset era letter(s) to the JEC era string used in correction names.
             # For eras that share a single combined correction (e.g. RunCD), every
             # contributing run letter must map to the same string.
@@ -476,7 +478,7 @@ def add_config(
                 (2022, "EE"): {"E": "RunE", "F": "RunF", "G": "RunG"},
                 (2023, ""): {"C": "RunCv123", "C4": "RunCv4"},
                 (2023, "BPix"): {"D": "RunD"},
-                (2024, ""): {p: f"Run{p}nib{nibs_version[p]}" for p in nibs_version},
+                (2024, ""): {},  # soon {p: f"Run{p}nib{nibs_version[p]}" for p in nibs_version},
                 (2025, ""): {"C": "RunC", "D": "RunD", "E": "RunE", "F": "RunF", "G": "RunG"},
             }
             if not jerc_postfix:
@@ -486,12 +488,10 @@ def add_config(
                 season = "Winter"
             else:
                 season = "Summer"
+
             jec_campaign = f"{season}{newyear}{campaign.x.postfix}{jerc_postfix}"
             jer_campaign = f"{season}{newyear}{campaign.x.postfix}{jerc_postfix}"
-
-            if year == 2025:
-                jer_campaign = jer_campaign.replace("Winter25", "Summer24")  # preliminary file that's why
-            if year == 2023:
+            if year in [2023, 2024]:
                 jer_campaign += f"_Run{'Cv1234' if campaign.has_tag('preBPix') else 'D'}"
             _era_map = jec_era_map.get((year, campaign.x.postfix), {})
             # Build inverse mapping: era string → list of run letters (for JER campaign suffix)
@@ -503,10 +503,10 @@ def add_config(
                 # soon "jer_version": "JR" + {2022: "V2", 2023: "V2", 2024: "V1", 2025: "V1"}[year],
                 "jer_version": "JR" + {2022: "V1", 2023: "V1", 2024: "V1", 2025: "V1"}[year],
                 "jet_type": "AK4PFPuppi",
-                "data_per_era": True,
+                "data_per_era": year == 2022,
             }
 
-        if year in [2024, 2022]:
+        if year in [2024, 2022, 2023]:
             for src in ["TimeRunA", "TimeRunB", "TimeRunC", "TimeRunD"]:
                 if src in jec_uncertainty_sources:
                     jec_uncertainty_sources.remove(src)

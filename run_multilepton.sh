@@ -6,16 +6,17 @@ task=cf.ProvideReducedEvents
 task=cf.GetDatasetLFNs
 task=cf.SelectEvents
 
-version=test_mr11
+version=test_final_mr11_2
 workflow=local  #  choices local, slurm, htcondor
 
-#config=22preEE_v14_private
-#config=24_v15_central
 #config=22preEE_v12_central
-config=22postEE_v12_central
+#config=22postEE_v12_central
+#config=23preBPix_v12_central
+#config=23postBPix_v12_central
+config=24_v15_central
 
 requested_datasets=(
- data_mu_e
+ data_mu_g
  ttzz_madgraph
 )
 requested_datasets_not_now=(
