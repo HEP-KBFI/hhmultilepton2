@@ -5,4 +5,5 @@
 
 [submodule "modules/cmsdb"]
     path = modules/cmsdb
-    url = https://gitlab.cern.ch/uhh-cms/cmsdb.git
+    url = https://github.com/uhh-cms/cmsdb.git
+    branch = master
