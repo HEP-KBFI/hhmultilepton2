@@ -377,9 +377,15 @@ def add_config(
         cfg.x.tau_tagger = tau_taggers.get(run)
 
         # TEC (Tau Energy Calibration)
-        # TODO: update to PNet TEC corrector once available from TauPOG
+        # TODO: update to PNet TEC corrector once available from TauPOG.
+        # For Run 3: cfg.x.tec must be set (the default calibrator always initialises it),
+        # but no PNet TEC corrector exists yet. We use the DeepTau2018v2p5 corrector as a
+        # placeholder with wp="Tight"/wp_VSe="VVLoose" — the only wp_VSe values that exist
+        # in the 2023 corrector JSON ("VLoose", "Loose", "Medium" are absent and crash).
+        # These corrections are a small O(few-%) effect on genuine tau pt/mass and are
+        # acceptable as a placeholder until TauPOG ships the PNet TEC JSON.
         if run == 3:
-            corrector_kwargs = {"wp": "Tight", "wp_VSe": "VLoose"}
+            corrector_kwargs = {"wp": "Tight", "wp_VSe": "VVLoose"}
             cfg.x.tec = TECConfig(tagger="DeepTau2018v2p5", corrector_kwargs=corrector_kwargs)
         else:
             corrector_kwargs = {}
