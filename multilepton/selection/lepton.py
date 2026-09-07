@@ -18,6 +18,7 @@ from columnflow.columnar_util import (
     set_ak_column, sorted_indices_from_mask, flat_np_view, full_like,
 )
 from columnflow.util import maybe_import
+from columnflow.production.cms.jet import jet_id
 
 from multilepton.util import (
     IF_NANO_V9, IF_NANO_GE_V10, IF_NANO_V12, IF_NANO_V14, IF_NANO_V15, IF_NOT_NANO_V15, IF_RUN_3_2024,
@@ -427,9 +428,10 @@ def electron_selection(
 
         closestjet_indicies = events.Electron.jetIdx[:, :]
         bad_indicies = (closestjet_indicies == -1)  # set btag to 0 if no closest jet
-        btag_values_bad = 0 * events.Electron.pt[bad_indicies]
-        btag_values_good = events.Jet[closestjet_indicies[~bad_indicies]][btag_discriminator]
-        btag_values = ak.concatenate([btag_values_bad, btag_values_good], axis=1)
+        btag_pad = ak.fill_none(ak.pad_none(events.Jet[btag_discriminator], 1, axis=1), 0.0)
+        btag_values = ak.where(
+            bad_indicies, 0.0, btag_pad[ak.where(bad_indicies, 0, closestjet_indicies)],
+        )
         atleast_loose = ((mva_iso_wp80 == 1) | (mva_iso_wp90 == 1))
         if mva_iso_wphzz is not None:
             atleast_loose = atleast_loose | (mva_iso_wphzz == 1)
@@ -716,9 +718,10 @@ def muon_selection(
 
         closestjet_indicies = events.Muon.jetIdx[:, :]
         bad_indicies = (closestjet_indicies == -1)  # set btag to 0 if no closest jet
-        btag_values_bad = 0 * events.Muon.pt[bad_indicies]
-        btag_values_good = events.Jet[closestjet_indicies[~bad_indicies]][btag_discriminator]
-        btag_values = ak.concatenate([btag_values_bad, btag_values_good], axis=1)
+        btag_pad = ak.fill_none(ak.pad_none(events.Jet[btag_discriminator], 1, axis=1), 0.0)
+        btag_values = ak.where(
+            bad_indicies, 0.0, btag_pad[ak.where(bad_indicies, 0, closestjet_indicies)],
+        )
         atleast_medium = ((events.Muon.mediumId == 1) | (events.Muon.tightId == 1))
         atleast_loose = ((events.Muon.looseId == 1) | (events.Muon.mediumId == 1) | (events.Muon.tightId == 1))
         tight_mask = (
@@ -1179,6 +1182,10 @@ def lepton_selection(
     })
 
     data_stream = self.dataset_inst.name.split("_")[1] if self.dataset_inst.is_data else None
+
+    # ensuring the v15 jetID fix required for the ttbar mr jet selection
+    if self.ffmr and self.config_inst.x.jet_id_has_multiplicity:
+        events = self[jet_id](events, **kwargs)
 
     # ────────────────────────────────────────────────────────────────
     # 2 SECOND LOOP – evaluate every physics channel once
@@ -2709,6 +2716,7 @@ def lepton_selection(
                 mr_btagcut_loose = self.config_inst.x.btag_working_points[mr_btag_tagger]["loose"]
 
                 mr_jet_mask = (
+                    (events.Jet.jetId == 6) &
                     (events.Jet.pt > 20.0) &
                     (abs(events.Jet.eta) < 2.5)
                 )
@@ -3150,6 +3158,10 @@ def lepton_selection(
 def lepton_selection_init(self: Selector, **kwargs) -> None:
     # add column to load the raw tau tagger score
     self.uses.add(f"Tau.raw{self.config_inst.x.tau_tagger}VSjet")
+
+    # ensuring the v15 jetID fix required for the ttbar mr jet selection
+    if self.ffmr and self.config_inst.x.jet_id_has_multiplicity:
+        self.uses.add(jet_id)
 
 
 # fills the measurement regions instead of the physics channels, used by the default_ffmr selector.
