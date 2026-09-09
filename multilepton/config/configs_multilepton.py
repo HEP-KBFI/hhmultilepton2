@@ -560,7 +560,7 @@ def add_config(
         Configure custom methods for retrieving dataset LFNs depending on campaign settings.
         """
         cfg.x.get_dataset_lfns = None
-        cfg.x.get_dataset_lfns_sandbox = None
+        cfg.x.get_dataset_lfns_sandbox = dev_sandbox("bash::$CF_BASE/sandboxes/cf.sh")
 
         # CI smoke tests (tests/run_analysis): use a single local fixture file instead of
         # querying DAS via dasgoclient, so the pipeline doesn't need CVMFS/scram or a grid
