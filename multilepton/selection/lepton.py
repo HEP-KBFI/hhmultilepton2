@@ -837,7 +837,9 @@ def tau_selection(
     is_cross_tau_jet = trigger.has_tag("cross_tau_tau_jet")
     is_2016 = self.config_inst.campaign.x.year == 2016
     is_run3 = self.config_inst.campaign.x.run == 3
-    get_tau_tagger = lambda tag: f"id{self.config_inst.x.tau_tagger}VS{tag}"
+    tagger = self.config_inst.x.tau_tagger
+    col_prefix = getattr(self.config_inst.x, "tau_tagger_column_prefix", "id")
+    get_tau_tagger = lambda tag: f"{col_prefix}{tagger}VS{tag}"
     wp_config = self.config_inst.x.tau_id_working_points
 
     # determine minimum pt and maximum eta
@@ -866,10 +868,13 @@ def tau_selection(
         (abs(events.Tau.dz) < 0.2)
     )
 
-    # base tau mask for default and qcd sideband tau
+    # Decay modes: Run 3 PNet includes DM=2, Run 2 HPS does not
+    dm_modes = (0, 1, 2, 10, 11) if is_run3 else (0, 1, 10, 11)
+
+    # base tau mask for default and qcd sideband tau (Fakeable selection)
     base_mask = noid_mask & (
-        reduce(or_, [events.Tau.decayMode == mode for mode in (0, 1, 10, 11)]) &
-        (events.Tau[get_tau_tagger("jet")] >= wp_config.tau_vs_jet.vvloose)
+        reduce(or_, [events.Tau.decayMode == mode for mode in dm_modes]) &
+        (events.Tau[get_tau_tagger("jet")] >= wp_config.tau_vs_jet.vvvloose)
         # vs e and mu cuts are channel dependent and thus applied in the overall lepton selection
     )
 
@@ -882,7 +887,7 @@ def tau_selection(
     # trigger dependent cuts
     trigger_specific_mask = base_mask & (events.Tau.pt > min_pt)
     # compute the isolation mask separately as it is used to defined (qcd) categories later on
-    iso_mask = events.Tau[get_tau_tagger("jet")] >= wp_config.tau_vs_jet.medium
+    iso_mask = events.Tau[get_tau_tagger("jet")] >= wp_config.tau_vs_jet.tight
 
     return base_mask, trigger_specific_mask, iso_mask, noid_mask
 
@@ -895,9 +900,11 @@ def tau_selection_init(self: Selector) -> None:
         for shift_inst in self.config_inst.shifts
         if shift_inst.has_tag("tec")
     }
-    # Add columns for the right tau tagger
+    # Add columns for the right tau tagger (id prefix for DeepTau, raw prefix for PNet)
+    col_prefix = getattr(self.config_inst.x, "tau_tagger_column_prefix", "id")
+    tagger = self.config_inst.x.tau_tagger
     self.uses |= {
-        f"Tau.id{self.config_inst.x.tau_tagger}VS{tag}"
+        f"Tau.{col_prefix}{tagger}VS{tag}"
         for tag in ("e", "mu", "jet")
     }
 
@@ -1008,7 +1015,9 @@ def lepton_selection(
     """
     wp_config = self.config_inst.x.tau_id_working_points
     disable_triggers = getattr(self.config_inst.x, "disable_triggers", False)
-    get_tau_tagger = lambda tag: f"id{self.config_inst.x.tau_tagger}VS{tag}"
+    tagger = self.config_inst.x.tau_tagger
+    col_prefix = getattr(self.config_inst.x, "tau_tagger_column_prefix", "id")
+    get_tau_tagger = lambda tag: f"{col_prefix}{tagger}VS{tag}"
 
     # get channels from the config
     print(self.config_inst)
@@ -1519,11 +1528,11 @@ def lepton_selection(
 
             fired = _trig_cache[(tid, "fired")]
 
-            # channel independent deeptau cuts vs e and mu, taumask has vs jet vvloose
+            # channel independent tau ID cuts vs e and mu (PNet: unified VLoose vs_e + Tight vs_mu)
             ch_tau_mask = (
                 tau_mask &
-                (events.Tau[get_tau_tagger("e")] >= wp_config.tau_vs_e.vvvloose) &
-                (events.Tau[get_tau_tagger("mu")] >= wp_config.tau_vs_mu.vloose)
+                (events.Tau[get_tau_tagger("e")] >= wp_config.tau_vs_e.vloose) &
+                (events.Tau[get_tau_tagger("mu")] >= wp_config.tau_vs_mu.tight)
             )
 
             ok = ak.ones_like(events.event, dtype=bool)
@@ -3156,8 +3165,11 @@ def lepton_selection(
 
 @lepton_selection.init
 def lepton_selection_init(self: Selector, **kwargs) -> None:
-    # add column to load the raw tau tagger score
-    self.uses.add(f"Tau.raw{self.config_inst.x.tau_tagger}VSjet")
+    # add column to load the raw tau tagger score for tau sorting
+    tagger = self.config_inst.x.tau_tagger
+    # For sorting, always use raw scores; for PNet this is "rawPNetVSjet",
+    # for DeepTau this is "rawDeepTau...VSjet"
+    self.uses.add(f"Tau.raw{tagger}VSjet")
 
     # ensuring the v15 jetID fix required for the ttbar mr jet selection
     if self.ffmr and self.config_inst.x.jet_id_has_multiplicity:
