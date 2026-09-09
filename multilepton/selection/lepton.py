@@ -59,7 +59,7 @@ def trigger_object_matching(
 ) -> ak.Array:
     """
     Helper to check per object in *vectors1* if there is at least one object in *vectors2* that
-    leads to a delta R metric below *threshold*. The final reduction is applied over *axis* of the
+        leads to a delta R metric below *threshold*. The final reduction is applied over *axis* of the
     resulting metric table containing the full combinatorics. If an *event_mask* is given, the
     the matching is performed only for those events, but a full object mask with the same shape as
     that of *vectors1* is returned, which all objects set to *False* where not matching was done.
@@ -940,7 +940,7 @@ def tau_trigger_matching(
         "ok_bdt_eormu",
         "TauIso", "TauNoID",
         "MuonLoose", "MuonTight", "Muon.cone_pt", "Muon.muonLeptoMVA_hh",
-        "ElectronLoose", "ElectronTight", "Electron.cone_pt",
+        "ElectronLoose", "ElectronTight", "Electron.cone_pt", "Electron.electronLeptoMVA_hh",
     },
 )
 def lepton_selection(

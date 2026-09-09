@@ -199,13 +199,12 @@ def gen_matching_selection(
         gen_match_tau_category_np[~tau_fake_np] = "gentau"
     gen_match_tau_category = ak.Array(gen_match_tau_category_np)
 
-    # ── B-jet veto (same working points as categorization/default.py) ─────────
-    # passes_bveto = True when the event would pass the b-veto used in the SR:
-    #   nLooseBjets < 2  AND  nMediumBjets < 1
+    # ── B-jet veto (same working point as categorization/default.py) ──────────
+    # passes_bveto = True when the event would pass the SR b-veto:
+    #   nMediumBjets < 1   (matches cat_bveto_on / cat_2lSS1tauOS_SR / etc.)
     wp_loose, wp_medium, wp_tight, btag_score = get_btag_info(self, events)
-    tagged_loose = btag_score > wp_loose
     tagged_medium = btag_score > wp_medium
-    passes_bveto = (ak.sum(tagged_loose, axis=1) < 2) & (ak.sum(tagged_medium, axis=1) < 1)
+    passes_bveto = ak.sum(tagged_medium, axis=1) < 1
 
     # Store columns
     events = set_ak_column(events, "gen_match_category", gen_match_category)

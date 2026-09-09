@@ -560,7 +560,7 @@ def add_config(
         Configure custom methods for retrieving dataset LFNs depending on campaign settings.
         """
         cfg.x.get_dataset_lfns = None
-        cfg.x.get_dataset_lfns_sandbox = None
+        cfg.x.get_dataset_lfns_sandbox = dev_sandbox("bash::$CF_BASE/sandboxes/cf.sh")
 
         # Handle special campaign type: "custom" with "creator" == "uhh"
         campaign_custom = cfg.campaign.x("custom", {})
