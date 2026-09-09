@@ -96,7 +96,6 @@ def add_categories(config: od.Config) -> None:
     ]
     gen_matches = ["gen_nonfakes", "gen_fakes", "gen_conversions", "gen_flips"]
 
-    # region ke liye ek base-id block, gen_match ke liye ek offset
     region_base_id = {
         "cat2lSS0tauOS_SR": 21000,
         "cat2lOS0tauSS_SR": 22000,

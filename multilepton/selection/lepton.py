@@ -20,7 +20,7 @@ from columnflow.columnar_util import (
 from columnflow.util import maybe_import
 
 from multilepton.util import (
-    IF_NANO_V9, IF_NANO_GE_V10, IF_NANO_V12, IF_NANO_V14, IF_NANO_V15, IF_RUN_3_2024,
+    IF_NANO_V9, IF_NANO_GE_V10, IF_NANO_V12, IF_NANO_V14, IF_NANO_V15,
 )
 from multilepton.selection.muon_mva import compute_muon_mva_score
 from multilepton.selection.electron_mva import compute_electron_mva_score
@@ -200,9 +200,10 @@ def get_cone_pt_from_jetidx(
         # custom electron LeptonMVA input branches: without these declared here columnflow does
         # not load them, so compute_electron_mva_score silently fed zeros -> degraded score.
         "Electron.{miniPFRelIso_chg,deltaEtaSC,mvaNoIso}", "Jet.nConstituents",
-        # v2 model inputs (jetDF = per-lepton DeepJet disc of associated jet, only exists in 2024)
-        "Electron.{pfRelIso03_all,jetNDauCharged,jetPtRelv2}", IF_RUN_3_2024("Electron.jetDF"),
-        "Jet.{pt,eta,phi}",
+        # v2 model inputs; btagDeepFlavB is read off the matched jet (Electron.jetIdx), not a
+        # per-lepton branch
+        "Electron.{pfRelIso03_all,jetNDauCharged,jetPtRelv2}",
+        "Jet.{pt,eta,phi,btagDeepFlavB}",
         IF_NANO_V12("Electron.mvaTTH", "Jet.btagPNetB"),
         IF_NANO_V14("Electron.promptMVA", "Jet.btagPNetB"),
         IF_NANO_V15("Electron.{promptMVA,mvaIso_WPHZZ}", "Jet.{btagPNetB,btagUParTAK4B}"),
@@ -512,9 +513,10 @@ def electron_trigger_matching(
         # load them, so compute_muon_mva_score silently fed zeros -> degraded score.
         "Muon.{miniPFRelIso_chg,nTrackerLayers,segmentComp,isTracker,nStations,isGlobal}",
         "Jet.nConstituents",
-        # v2 model inputs (jetDF = per-lepton DeepJet disc of associated jet, only exists in 2024)
-        "Muon.{pfRelIso03_all,jetNDauCharged,jetPtRelv2}", IF_RUN_3_2024("Muon.jetDF"),
-        "Jet.{pt,eta,phi}",
+        # v2 model inputs; btagDeepFlavB is read off the matched jet (Muon.jetIdx), not a
+        # per-lepton branch
+        "Muon.{pfRelIso03_all,jetNDauCharged,jetPtRelv2}",
+        "Jet.{pt,eta,phi,btagDeepFlavB}",
         IF_NANO_V12("Muon.mvaTTH", "Jet.btagPNetB"),
         IF_NANO_V14("Muon.promptMVA", "Jet.btagPNetB"),
         IF_NANO_V15("Muon.promptMVA", "Jet.{btagPNetB,btagUParTAK4B}"),
