@@ -35,6 +35,10 @@ multileptons_categories = {
     "cat2lOS0tauSS_SB": {"id": 1020, "selection": "cat_2lOS_SB", "label": r"$2\ell OS\,  0\tau_{h}$ SB"},
     "cat1l2tau_SR": {"id": 1021, "selection": "cat_1l2tau_SR", "label": r"$1\ell 2\tau_{h}$ SR"},
     "cat1l2tau_SB": {"id": 1022, "selection": "cat_1l2tau_SB", "label": r"$1\ell 2\tau_{h}$ SB"},
+    # fake factor measurement regions, only filled by the default_ffmr selector
+    "catttbarMR": {"id": 1023, "selection": "cat_ttbarMR", "label": r"$t\bar{t}$ MR"},
+    "catwzMR": {"id": 1024, "selection": "cat_wzMR", "label": r"$WZ$ MR"},
+    "catdyMR": {"id": 1025, "selection": "cat_dyMR", "label": r"$DY$ MR"},
     # Loose category for BDT trainning + tight + trigmatch
     "ceormu_bveto": {"id": 15000, "selection": "cat_eormu_bveto", "label": r"e or $\mu$ bveto on", "tags": {"ceormu_bveto"}},  # noqa: E501
     # bveto
@@ -54,12 +58,8 @@ multileptons_categories = {
     "iso": {"id": 12, "selection": "cat_iso", "label": r"iso", "tags": {"iso"}},
     "noniso": {"id": 13, "selection": "cat_noniso", "label": r"non-iso", "tags": {"noniso"}},
     "incl": {"id": 100, "selection": "cat_incl", "label": "inclusive"},
-    "2j": {"id": 110, "selection": "cat_2j", "label": "2 jets"},
-    "dy": {"id": 210, "selection": "cat_dy", "label": "DY enriched"},
     "tt": {"id": 220, "selection": "cat_tt", "label": r"$t\bar{t}$ enriched"},
-    "res1b": {"id": 300, "selection": "cat_res1b", "label": "res1b"},
     "res2b": {"id": 301, "selection": "cat_res2b", "label": "res2b"},
-    "boosted": {"id": 310, "selection": "cat_boosted", "label": "boosted"},
 }
 
 
