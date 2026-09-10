@@ -432,6 +432,9 @@ def electron_selection(
         btag_values = ak.where(
             bad_indicies, 0.0, btag_pad[ak.where(bad_indicies, 0, closestjet_indicies)],
         )
+        abs_sc_eta = abs(events.Electron.eta + events.Electron.deltaEtaSC)
+        sieie_max = ak.where(abs_sc_eta > 1.479, 0.030, 0.011)  # endcap, barrel
+
         atleast_loose = ((mva_iso_wp80 == 1) | (mva_iso_wp90 == 1))
         if mva_iso_wphzz is not None:
             atleast_loose = atleast_loose | (mva_iso_wphzz == 1)
@@ -442,7 +445,7 @@ def electron_selection(
             (abs(events.Electron.dz) < 1) &
             (events.Electron.sip3d < 8) &
             (events.Electron.miniPFRelIso_all < 0.4) &
-            (events.Electron.sieie < 0.019) &
+            (events.Electron.sieie < sieie_max) &
             (events.Electron.hoe < 0.1) &
             (events.Electron.eInvMinusPInv > -0.04) &
             (events.Electron.convVeto == 1) &
@@ -486,7 +489,7 @@ def electron_selection(
             (abs(events.Electron.dz) < 1) &
             (events.Electron.sip3d < 8) &
             (events.Electron.miniPFRelIso_all < 0.4) &
-            (events.Electron.sieie < 0.019) &
+            (events.Electron.sieie < sieie_max) &
             (events.Electron.hoe < 0.1) &
             (events.Electron.eInvMinusPInv > -0.04) &
             (events.Electron.convVeto == 1) &
