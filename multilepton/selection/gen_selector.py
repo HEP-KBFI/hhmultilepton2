@@ -13,7 +13,7 @@ from columnflow.selection import Selector, SelectionResult, selector
 from columnflow.columnar_util import set_ak_column, full_like
 from columnflow.util import maybe_import
 
-from multilepton.util import IF_MC, IF_NANO_V12, IF_NANO_V14, IF_NANO_V15
+from multilepton.util import IF_MC
 
 np = maybe_import("numpy")
 ak = maybe_import("awkward")
@@ -45,26 +45,6 @@ logger = law.logger.get_logger(__name__)
 #   0  = jet faking tau
 # ====================================================================
 
-# Helper to handle the taggers configuration
-def get_btag_info(self: Selector, events: ak.Array):
-    year = self.config_inst.campaign.x.year
-
-    if year in {2024, 2025, 2026}:
-        btag_tagger = "UParTAK4"
-        btag_discriminator = "btagUParTAK4B"
-    else:
-        btag_tagger = "particleNet"
-        btag_discriminator = "btagPNetB"
-
-    wp_loose = self.config_inst.x.btag_working_points[btag_tagger]["loose"]
-    wp_medium = self.config_inst.x.btag_working_points[btag_tagger]["medium"]
-    wp_tight = self.config_inst.x.btag_working_points[btag_tagger]["tight"]
-
-    btag_score = events.Jet[btag_discriminator]
-
-    return wp_loose, wp_medium, wp_tight, btag_score
-
-
 @selector(
     uses={
         "channel_id",
@@ -77,9 +57,6 @@ def get_btag_info(self: Selector, events: ak.Array):
         IF_MC("Tau.genPartFlav"),
         "Tau.charge",
         "TauIso",
-        IF_NANO_V12("Jet.btagPNetB"),
-        IF_NANO_V14("Jet.btagPNetB"),
-        IF_NANO_V15("Jet.{btagPNetB,btagUParTAK4B}"),
     },
     produces={
         # produced for both MC and data (data gets a neutral "nonfakes" default; downstream
@@ -87,7 +64,6 @@ def get_btag_info(self: Selector, events: ak.Array):
         "gen_match_category",
         # the rest are only meaningful for MC (require genPartFlav truth), so only produced there
         IF_MC(
-            "passes_bveto",                          # b-jet veto flag (same WP as categorization)
             "gen_match_tau_category",                # gentau/faketau/none
             "selLeptons_numGenMatchedLeptons",
             "selLeptons_numChargeFlippedGenMatchedLeptons",
@@ -209,13 +185,6 @@ def gen_matching_selection(
         gen_match_tau_category_np[~tau_fake_np] = "gentau"
     gen_match_tau_category = ak.Array(gen_match_tau_category_np)
 
-    # ── B-jet veto (same working point as categorization/default.py) ──────────
-    # passes_bveto = True when the event would pass the SR b-veto:
-    #   nMediumBjets < 1   (matches cat_bveto_on / cat_2lSS1tauOS_SR / etc.)
-    wp_loose, wp_medium, wp_tight, btag_score = get_btag_info(self, events)
-    tagged_medium = btag_score > wp_medium
-    passes_bveto = ak.sum(tagged_medium, axis=1) < 1
-
     # Store columns
     events = set_ak_column(events, "gen_match_category", gen_match_category)
     events = set_ak_column(events, "gen_match_tau_category", gen_match_tau_category)
@@ -237,7 +206,6 @@ def gen_matching_selection(
     events = set_ak_column(events, "selHadTaus_numGenMatchedElectrons", selHadTaus_numGenMatchedElectrons)
     events = set_ak_column(events, "selHadTaus_numGenMatchedMuons", selHadTaus_numGenMatchedMuons)
     events = set_ak_column(events, "selHadTaus_numGenMatchedJets", selHadTaus_numGenMatchedJets)
-    events = set_ak_column(events, "passes_bveto", passes_bveto)
 
     return events, SelectionResult(
         steps={
