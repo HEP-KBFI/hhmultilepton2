@@ -365,76 +365,38 @@ def add_config(
     def ConfigureTaus(cfg, run, campaign):
         """
         Configure tau ID, TEC (Tau Energy Calibration), and trigger settings.
-
-        Run 2: DeepTau with integer WP IDs (idDeepTau...VS{jet,e,mu} columns).
-        Run 3: PNet with raw float score thresholds (rawPNetVS{jet,e,mu} columns).
         """
         tau_taggers = {
             2: "DeepTau2017v2p1",
-            3: "PNet",
+            3: "DeepTau2018v2p5",
         }
 
         cfg.x.tau_tagger = tau_taggers.get(run)
-
-        # TEC (Tau Energy Calibration)
-        # TODO: update to PNet TEC corrector once available from TauPOG.
-        # For Run 3: cfg.x.tec must be set (the default calibrator always initialises it),
-        # but no PNet TEC corrector exists yet. We use the DeepTau2018v2p5 corrector as a
-        # placeholder with wp="Tight"/wp_VSe="VVLoose" — the only wp_VSe values that exist
-        # in the 2023 corrector JSON ("VLoose", "Loose", "Medium" are absent and crash).
-        # These corrections are a small O(few-%) effect on genuine tau pt/mass and are
-        # acceptable as a placeholder until TauPOG ships the PNet TEC JSON.
-        if run == 3:
-            corrector_kwargs = {"wp": "Tight", "wp_VSe": "VVLoose"}
-            cfg.x.tec = TECConfig(tagger="DeepTau2018v2p5", corrector_kwargs=corrector_kwargs)
-        else:
-            corrector_kwargs = {}
-            cfg.x.tec = TECConfig(tagger=cfg.x.tau_tagger, corrector_kwargs=corrector_kwargs)
+        corrector_kwargs = {"wp": "Medium", "wp_VSe": "VVLoose"} if run == 3 else {}
+        cfg.x.tec = TECConfig(tagger=cfg.x.tau_tagger, corrector_kwargs=corrector_kwargs)
 
         # --- Tau ID working points
-        if run == 3:
-            # PNet: raw float score thresholds from TauPOG
-            # Column prefix is "raw" (rawPNetVSjet, rawPNetVSe, rawPNetVSmu)
-            cfg.x.tau_tagger_column_prefix = "raw"
-            cfg.x.tau_id_working_points = DotDict.wrap({
-                "tau_vs_jet": {
-                    "vvvloose": 0.0565, "vvloose": 0.1774, "vloose": 0.3810,
-                    "loose": 0.6857, "medium": 0.8347, "tight": 0.9059,
-                    "vtight": 0.9494, "vvtight": 0.9737,
-                },
-                "tau_vs_e": {
-                    "vvvloose": 0.1266, "vvloose": 0.3547, "vloose": 0.6997,
-                    "loose": 0.9354, "medium": 0.9791, "tight": 0.9897,
-                    "vtight": 0.9946, "vvtight": 0.9971,
-                },
-                "tau_vs_mu": {
-                    "vloose": 0.2399, "loose": 0.6037,
-                    "medium": 0.8697, "tight": 0.9451,
-                },
-            })
+        # Legacy (campaign.x.version < 10) vs New format (>=10)
+        if campaign.x.version < 10:
+            wp_values_mu = {"vloose": 1, "loose": 2, "medium": 4, "tight": 8}
+            wp_values_jet_or_e = {
+                "vvvloose": 1, "vvloose": 2, "vloose": 4,
+                "loose": 8, "medium": 16, "tight": 32,
+                "vtight": 64, "vvtight": 128,
+            }
         else:
-            # DeepTau: integer WP IDs
-            cfg.x.tau_tagger_column_prefix = "id"
-            # Legacy (campaign.x.version < 10) vs New format (>=10)
-            if campaign.x.version < 10:
-                wp_values_mu = {"vloose": 1, "loose": 2, "medium": 4, "tight": 8}
-                wp_values_jet_or_e = {
-                    "vvvloose": 1, "vvloose": 2, "vloose": 4,
-                    "loose": 8, "medium": 16, "tight": 32,
-                    "vtight": 64, "vvtight": 128,
-                }
-            else:
-                wp_values_mu = {"vloose": 1, "loose": 2, "medium": 3, "tight": 4}
-                wp_values_jet_or_e = {
-                    "vvvloose": 1, "vvloose": 2, "vloose": 3,
-                    "loose": 4, "medium": 5, "tight": 6,
-                    "vtight": 7, "vvtight": 8,
-                }
-            cfg.x.tau_id_working_points = DotDict.wrap({
-                "tau_vs_e": wp_values_jet_or_e,
-                "tau_vs_jet": wp_values_jet_or_e,
-                "tau_vs_mu": wp_values_mu,
-            })
+            wp_values_mu = {"vloose": 1, "loose": 2, "medium": 3, "tight": 4}
+            wp_values_jet_or_e = {
+                "vvvloose": 1, "vvloose": 2, "vloose": 3,
+                "loose": 4, "medium": 5, "tight": 6,
+                "vtight": 7, "vvtight": 8,
+            }
+
+        cfg.x.tau_id_working_points = DotDict.wrap({
+            "tau_vs_e": wp_values_jet_or_e,
+            "tau_vs_jet": wp_values_jet_or_e,
+            "tau_vs_mu": wp_values_mu,
+        })
 
         # --- Tau trigger working points
         cfg.x.tau_trigger_working_points = DotDict.wrap({
