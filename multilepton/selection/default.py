@@ -154,10 +154,13 @@ def default(
     results += lepton_results
 
     # gen-matching selection (match selected leptons to generator level) - DEPENDENT on lepton_selection
-    # run on both MC and data: for data, gen_matching_selection fills gen_match_category with a
-    # neutral default so downstream categorizers (cat_nonfakes/cat_fakes/...) still find the column
-    events, gen_matching_results = self[gen_matching_selection](events, **kwargs)
-    results += gen_matching_results
+    # opt-in only: this classification (and its columns/categories) is only needed for dedicated
+    # gen-matching/fake studies, so it is skipped by default to avoid slowing down every run
+    if self.config_inst.x("enable_gen_matching_studies", False):
+        # run on both MC and data: for data, gen_matching_selection fills gen_match_category with
+        # a neutral default so downstream categorizers (cat_nonfakes/cat_fakes/...) still find it
+        events, gen_matching_results = self[gen_matching_selection](events, **kwargs)
+        results += gen_matching_results
 
     # jet selection
     events, jet_results = self[jet_selection](events, trigger_results, lepton_results, **kwargs)

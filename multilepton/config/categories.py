@@ -75,8 +75,15 @@ def add_categories(config: od.Config) -> None:
     for ch in config.channels:
         _add_category(config, name=ch.name, id=ch.id, selection=f"cat_{ch.name[1:]}", label=ch.label, tags=ch.name)
 
+    # opt-in only: the gen-matching classification and its categories are only needed for
+    # dedicated gen-matching/fake studies (see enable_gen_matching_studies in configs_multilepton.py)
+    gen_matching_enabled = config.x("enable_gen_matching_studies", False)
+    gen_match_category_names = {"gen_nonfakes", "gen_fakes", "gen_conversions", "gen_flips"}
+
     # analysis-specific multilepton categories
     for name, cat in multileptons_categories.items():
+        if name in gen_match_category_names and not gen_matching_enabled:
+            continue
         _add_category(
             config,
             name=name,
@@ -85,6 +92,9 @@ def add_categories(config: od.Config) -> None:
             label=cat["label"],
             tags=cat.get("tags"),
         )
+
+    if not gen_matching_enabled:
+        return
 
     # ------------------------------------------------------------------
     # combine SR regions with gen-match categories
