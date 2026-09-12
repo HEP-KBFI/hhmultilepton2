@@ -244,6 +244,7 @@ def add_config(
     campaign: od.Campaign,
     config_name: str | None = None,
     config_id: int | None = None,
+    enable_gen_matching_studies: bool = False,
 ) -> od.Config:
 
     # gather campaign data
@@ -1366,6 +1367,10 @@ def add_config(
     # =============================================
     # add variables, categories , met and triggers
     # =============================================
+    # opt-in flag: the gen-matching classification (nonfakes/fakes/conversions/flips) and its
+    # categories are only needed for dedicated gen-matching/fake studies, so they are skipped by
+    # default to avoid slowing down every run; pass enable_gen_matching_studies=True to turn them on
+    cfg.x.enable_gen_matching_studies = enable_gen_matching_studies
     add_categories(cfg)
     add_variables(cfg)
     add_met_filters(cfg)
