@@ -234,7 +234,7 @@ def hzz_iso_wp(electron, cuts=None):
     uses={
         "Electron.{pt,eta,phi,dxy,dz}",
         "Electron.{pfRelIso03_all,seediEtaOriX,seediPhiOriY,sip3d,miniPFRelIso_all,sieie}",
-        "Electron.{hoe,eInvMinusPInv,convVeto,lostHits,jetPtRelv2,jetIdx}",
+        "Electron.{hoe,eInvMinusPInv,convVeto,lostHits,jetPtRelv2,jetRelIso,jetIdx}",
         # custom electron LeptonMVA input branches: without these declared here columnflow does
         # not load them, so compute_electron_mva_score silently fed zeros -> degraded score.
         "Electron.{miniPFRelIso_chg,deltaEtaSC,mvaNoIso}", "Jet.nConstituents",
@@ -244,7 +244,7 @@ def hzz_iso_wp(electron, cuts=None):
         "Jet.{pt,eta,phi,btagDeepFlavB}",
         IF_NANO_V12("Electron.{mvaTTH,mvaHZZIso}", "Jet.btagPNetB"),
         IF_NANO_V14("Electron.{promptMVA,mvaIso_WPHZZ}", "Jet.btagPNetB"),
-        IF_NANO_V15("Electron.{promptMVA,mvaIso_WPHZZ}", "Jet.{btagPNetB,btagUParTAK4B}"),
+        IF_NANO_V15("Electron.{promptMVA,mvaIso_WPHZZ,pfRelIso04_all}", "Jet.{btagPNetB,btagUParTAK4B}"),
         IF_NANO_V9("Electron.mvaFall17V2{Iso_WP80,Iso_WP90}"),
         IF_NANO_GE_V10("Electron.{mvaIso_WP80,mvaIso_WP90}"),
     },
@@ -481,7 +481,10 @@ def electron_selection(
         idlepmvapassed = (atleast_loose & (promptMVA > 0.3))
         idlepmvafailed = ((mva_iso_wp90 == 1) & (promptMVA <= 0.3))
         jetisolepmvapassed = (promptMVA > 0.3)
-        jetisolepmvafailed = ((promptMVA <= 0.3) & (events.Electron.jetPtRelv2 < (1. / 1.7)))
+        e_jetreliso = events.Electron.jetRelIso
+        if self.config_inst.campaign.x.version == 15:
+            e_jetreliso = ak.where(e_jetreliso == -1, events.Electron.pfRelIso04_all, e_jetreliso)
+        jetisolepmvafailed = ((promptMVA <= 0.3) & (e_jetreliso <= 0.7))
         fakeable_mask = (
             (events.Electron.pt > 10) &
             (cone_pt > 10.0) &
@@ -555,7 +558,7 @@ def electron_trigger_matching(
 @selector(
     uses={
         "Muon.{pt,eta,phi,looseId,mediumId,tightId}",
-        "Muon.{pfRelIso04_all,dxy,dz,sip3d,miniPFRelIso_all,jetPtRelv2,jetIdx}",
+        "Muon.{pfRelIso04_all,dxy,dz,sip3d,miniPFRelIso_all,jetPtRelv2,jetRelIso,jetIdx}",
         # custom muon LeptonMVA input branches: without these declared here columnflow does not
         # load them, so compute_muon_mva_score silently fed zeros -> degraded score.
         "Muon.{miniPFRelIso_chg,nTrackerLayers,segmentComp,isTracker,nStations,isGlobal}",
@@ -762,6 +765,9 @@ def muon_selection(
             (events.Muon.miniPFRelIso_all < 0.4) &
             atleast_loose
         )
+        mu_jetreliso = events.Muon.jetRelIso
+        if self.config_inst.campaign.x.version == 15:
+            mu_jetreliso = ak.where(mu_jetreliso == -1, events.Muon.pfRelIso04_all, mu_jetreliso)
         fakeable_mask = (
             (events.Muon.pt > 10) &
             (cone_pt > 10) &
@@ -772,7 +778,7 @@ def muon_selection(
             (events.Muon.miniPFRelIso_all < 0.4) &
             atleast_loose &
             (btag_values < btagcut_tight) &
-            ((promptMVA > 0.5) | ((promptMVA <= 0.5) & (events.Muon.jetPtRelv2 < (1. / 1.8))))
+            ((promptMVA > 0.5) | ((promptMVA <= 0.5) & (mu_jetreliso <= 0.8)))
         )
 
     return tight_mask, fakeable_mask, loose_mask, cone_pt
@@ -1197,6 +1203,35 @@ def lepton_selection(
 
     data_stream = self.dataset_inst.name.split("_")[1] if self.dataset_inst.is_data else None
 
+    # avoiding double counting of events contributing to different PDs. Ordering: muon > muoneg > egamma > tau
+    def _fired_over(tid_list):
+        fired_events = full_like(events.event, False, dtype=bool)
+        for tid in tid_list:
+            if (tid, "fired") in _trig_cache:
+                fired_events = fired_events | _trig_cache[(tid, "fired")]
+        return fired_events
+
+    muon_pd_tids = tids.single_mu + tids.double_mu + tids.triple_mu + tids.cross_mu_tau
+    muoneg_pd_tids = tids.double_emu + tids.triple_eemu + tids.triple_emumu
+    egamma_pd_tids = tids.single_e + tids.double_e + tids.triple_e + tids.cross_e_tau
+    # tau_pd_tids = tids.cross_tau_tau_any  # lowest priority: nothing vetoes against it
+
+    fired_muon_pd = _fired_over(muon_pd_tids)
+    fired_muoneg_pd = _fired_over(muoneg_pd_tids)
+    fired_egamma_pd = _fired_over(egamma_pd_tids)
+
+    if self.dataset_inst.is_data:
+        if data_stream == "muoneg":
+            pd_overlap_ok = ~fired_muon_pd
+        elif data_stream == "e":
+            pd_overlap_ok = ~fired_muon_pd & ~fired_muoneg_pd
+        elif data_stream == "tau":
+            pd_overlap_ok = ~fired_muon_pd & ~fired_muoneg_pd & ~fired_egamma_pd
+        else:
+            pd_overlap_ok = full_like(events.event, True, dtype=bool)
+    else:
+        pd_overlap_ok = full_like(events.event, True, dtype=bool)
+
     # ensuring the v15 jetID fix required for the ttbar mr jet selection
     if self.ffmr and self.config_inst.x.jet_id_has_multiplicity:
         events = self[jet_id](events, **kwargs)
@@ -1531,7 +1566,7 @@ def lepton_selection(
             noid_tau_mask = _trig_cache[(tid, "noid_tau_mask")]
             tau_iso_mask = _trig_cache[(tid, "tau_iso_mask")]
 
-            fired = _trig_cache[(tid, "fired")]
+            fired = _trig_cache[(tid, "fired")] & pd_overlap_ok
 
             # channel independent tau ID cuts vs e and mu (PNet: unified VLoose vs_e + Tight vs_mu)
             ch_tau_mask = (

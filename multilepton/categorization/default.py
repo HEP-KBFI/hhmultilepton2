@@ -15,7 +15,7 @@ ak = maybe_import("awkward")
 BTAG_COUNT_COLUMNS = {"n_btag_medium", "n_btag_tight"}
 
 
-# columns read by get_global_lepton_veto, added to the uses of every SR and SB categorizer
+# columns read by veto_low_mass_mll and veto_HZZ, added to the uses of every SR and SB categorizer
 GLOBAL_VETO_COLUMNS = {
     "ElectronLoose.{pt,eta,phi,mass,charge}",
     "MuonLoose.{pt,eta,phi,mass,charge}",
@@ -25,11 +25,9 @@ M_4L_VETO = 140.0
 M_LL_VETO = 12.0
 
 
-def get_global_lepton_veto(self: Categorizer, events: ak.Array) -> ak.Array:
+def veto_low_mass_mll(self: Categorizer, events: ak.Array) -> ak.Array:
     """
-    Vetoes, from the loose electrons and muons only (no taus):
-      1. four leptons forming two same-flavour opposite-sign (SFOS) pairs with m_4l < M_4L_VETO,
-      2. any SFOS pair with m_ll < M_LL_VETO.
+    From the loose electrons and muons, vetoes SFOS pairs with mll < m_ll_veto
     """
     ele = attach_behavior(events.ElectronLoose, "Electron")
     mu = attach_behavior(events.MuonLoose, "Muon")
@@ -47,22 +45,40 @@ def get_global_lepton_veto(self: Categorizer, events: ak.Array) -> ak.Array:
     lep_idx = ak.local_index(lep_charge, axis=1)
     is_sfos = lambda a, b: (lep_is_mu[a] == lep_is_mu[b]) & ((lep_charge[a] + lep_charge[b]) == 0)
 
-    # veto 1, testing the three ways of pairing up four leptons
-    i0, i1, i2, i3 = ak.unzip(ak.combinations(lep_idx, 4, axis=1))
-    two_sfos = (
-        (is_sfos(i0, i1) & is_sfos(i2, i3)) |
-        (is_sfos(i0, i2) & is_sfos(i1, i3)) |
-        (is_sfos(i0, i3) & is_sfos(i1, i2))
+    l1, l2 = ak.unzip(ak.combinations(lep_idx, 2, axis=1))
+    m_ll = (lep_p4[l1] + lep_p4[l2]).mass
+    return ~ak.any(is_sfos(l1, l2) & (m_ll < M_LL_VETO), axis=1)
+
+
+def veto_HZZ(self: Categorizer, events: ak.Array) -> ak.Array:
+    """
+    From the loose electrons and muons, vetoes events with two SFOS pairs with m4l < m_4l_veto
+    """
+    ele = attach_behavior(events.ElectronLoose, "Electron")
+    mu = attach_behavior(events.MuonLoose, "Muon")
+
+    lep_p4 = ak.concatenate([ele * 1, mu * 1], axis=1)
+    lep_charge = ak.concatenate([ele.charge, mu.charge], axis=1)
+    lep_is_mu = ak.concatenate(
+        [
+            ak.zeros_like(ele.charge, dtype=bool),
+            ak.ones_like(mu.charge, dtype=bool),
+        ],
+        axis=1,
     )
-    m_4l = (lep_p4[i0] + lep_p4[i1] + lep_p4[i2] + lep_p4[i3]).mass
-    veto_m_4l = ak.any(two_sfos & (m_4l < M_4L_VETO), axis=1)
 
-    # veto 2
-    j0, j1 = ak.unzip(ak.combinations(lep_idx, 2, axis=1))
-    m_ll = (lep_p4[j0] + lep_p4[j1]).mass
-    veto_m_ll = ak.any(is_sfos(j0, j1) & (m_ll < M_LL_VETO), axis=1)
+    lep_idx = ak.local_index(lep_charge, axis=1)
+    is_sfos = lambda a, b: (lep_is_mu[a] == lep_is_mu[b]) & ((lep_charge[a] + lep_charge[b]) == 0)
 
-    return ~veto_m_4l & ~veto_m_ll
+    # testing the three ways of pairing up four leptons
+    l1, l2, l3, l4 = ak.unzip(ak.combinations(lep_idx, 4, axis=1))
+    two_sfos = (
+        (is_sfos(l1, l2) & is_sfos(l3, l4)) |
+        (is_sfos(l1, l3) & is_sfos(l2, l4)) |
+        (is_sfos(l1, l4) & is_sfos(l2, l3))
+    )
+    m_4l = (lep_p4[l1] + lep_p4[l2] + lep_p4[l3] + lep_p4[l4]).mass
+    return ~ak.any(two_sfos & (m_4l < M_4L_VETO), axis=1)
 
 
 @categorizer(uses={"event"})
@@ -243,8 +259,8 @@ def cat_mu2tau(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array,
 def cat_ttbarMR(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array, ak.Array]:
     # no b-veto, the region has its own b-tag requirements in the selection
     catmask = events.channel_id == self.config_inst.channels.n.cttbarMR.id
-    global_veto = get_global_lepton_veto(self, events)
-    return events, (catmask & global_veto)
+    mll_veto = veto_low_mass_mll(self, events)
+    return events, (catmask & mll_veto)
 
 
 @categorizer(uses={"channel_id", *BTAG_COUNT_COLUMNS})
@@ -271,8 +287,8 @@ def cat_2lSS1tauOS_SR(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak
     bveto = (events.n_btag_medium < 1)
     SR = events.tight_sel == 1
     OS = events.leptons_os == 1
-    global_veto = get_global_lepton_veto(self, events)
-    return events, (catmask & bveto & SR & OS & global_veto)
+    mll_veto = veto_low_mass_mll(self, events)
+    return events, (catmask & bveto & SR & OS & mll_veto)
 
 
 @categorizer(uses={"channel_id",
@@ -285,8 +301,8 @@ def cat_2lOS1tauSS_SR(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak
     bveto = (events.n_btag_medium < 1)
     SR = events.tight_sel == 1
     WS = events.leptons_os == 0  # WS = Wrong Sign
-    global_veto = get_global_lepton_veto(self, events)
-    return events, (catmask & bveto & SR & WS & global_veto)
+    mll_veto = veto_low_mass_mll(self, events)
+    return events, (catmask & bveto & SR & WS & mll_veto)
 
 
 @categorizer(uses={"channel_id",
@@ -299,8 +315,8 @@ def cat_2lSS1tauOS_SB(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak
     bveto = (events.n_btag_medium < 1)
     SR = events.tight_sel == 0
     OS = events.leptons_os == 1
-    global_veto = get_global_lepton_veto(self, events)
-    return events, (catmask & bveto & SR & OS & global_veto)
+    mll_veto = veto_low_mass_mll(self, events)
+    return events, (catmask & bveto & SR & OS & mll_veto)
 
 
 @categorizer(uses={"channel_id",
@@ -313,8 +329,8 @@ def cat_2lOS1tauSS_SB(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak
     bveto = (events.n_btag_medium < 1)
     SR = events.tight_sel == 0
     WS = events.leptons_os == 0  # WS = Wrong Sign
-    global_veto = get_global_lepton_veto(self, events)
-    return events, (catmask & bveto & SR & WS & global_veto)
+    mll_veto = veto_low_mass_mll(self, events)
+    return events, (catmask & bveto & SR & WS & mll_veto)
 
 
 @categorizer(uses={"channel_id",
@@ -327,8 +343,8 @@ def cat_2lSS_SR(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array
     bveto = (events.n_btag_medium < 1)
     SR = events.tight_sel == 1
     SS = events.leptons_os == 0
-    global_veto = get_global_lepton_veto(self, events)
-    return events, (catmask & bveto & SR & SS & global_veto)
+    mll_veto = veto_low_mass_mll(self, events)
+    return events, (catmask & bveto & SR & SS & mll_veto)
 
 
 @categorizer(uses={"channel_id",
@@ -341,8 +357,8 @@ def cat_2lOS_SR(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array
     bveto = (events.n_btag_medium < 1)
     SR = events.tight_sel == 1
     OS = events.leptons_os == 1
-    global_veto = get_global_lepton_veto(self, events)
-    return events, (catmask & bveto & SR & OS & global_veto)
+    mll_veto = veto_low_mass_mll(self, events)
+    return events, (catmask & bveto & SR & OS & mll_veto)
 
 
 @categorizer(uses={"channel_id",
@@ -355,8 +371,8 @@ def cat_2lSS_SB(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array
     bveto = (events.n_btag_medium < 1)
     SR = events.tight_sel == 0
     SS = events.leptons_os == 0
-    global_veto = get_global_lepton_veto(self, events)
-    return events, (catmask & bveto & SR & SS & global_veto)
+    mll_veto = veto_low_mass_mll(self, events)
+    return events, (catmask & bveto & SR & SS & mll_veto)
 
 
 @categorizer(uses={"channel_id",
@@ -369,8 +385,8 @@ def cat_2lOS_SB(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array
     bveto = (events.n_btag_medium < 1)
     SR = events.tight_sel == 0
     OS = events.leptons_os == 1
-    global_veto = get_global_lepton_veto(self, events)
-    return events, (catmask & bveto & SR & OS & global_veto)
+    mll_veto = veto_low_mass_mll(self, events)
+    return events, (catmask & bveto & SR & OS & mll_veto)
 
 
 @categorizer(uses={"channel_id",
@@ -382,8 +398,8 @@ def cat_1l2tau_SR(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Arr
     bveto = (events.n_btag_medium < 1)
     SR = events.tight_sel == 1
     OS = events.leptons_os == 1
-    global_veto = get_global_lepton_veto(self, events)
-    return events, (catmask & bveto & SR & OS & global_veto)
+    mll_veto = veto_low_mass_mll(self, events)
+    return events, (catmask & bveto & SR & OS & mll_veto)
 
 
 @categorizer(uses={"channel_id",
@@ -395,8 +411,8 @@ def cat_1l2tau_SB(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Arr
     bveto = (events.n_btag_medium < 1)
     SR = events.tight_sel == 0
     OS = events.leptons_os == 1
-    global_veto = get_global_lepton_veto(self, events)
-    return events, (catmask & bveto & SR & OS & global_veto)
+    mll_veto = veto_low_mass_mll(self, events)
+    return events, (catmask & bveto & SR & OS & mll_veto)
 
 
 # 3l/4l inclusive, later split into CR / SR via Z-peak
@@ -411,8 +427,8 @@ def cat_3l0tau_SR(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Arr
     bveto = (events.n_btag_medium < 1)
     SR = events.tight_sel == 1
     chargeok = events.leptons_os == 1
-    global_veto = get_global_lepton_veto(self, events)
-    return events, (catmask & bveto & SR & chargeok & global_veto)
+    mll_veto = veto_low_mass_mll(self, events)
+    return events, (catmask & bveto & SR & chargeok & mll_veto)
 
 
 @categorizer(uses={"channel_id",
@@ -426,8 +442,8 @@ def cat_3l0tau_SB(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Arr
     bveto = (events.n_btag_medium < 1)
     SB = events.tight_sel == 0
     chargeok = events.leptons_os == 1
-    global_veto = get_global_lepton_veto(self, events)
-    return events, (catmask & bveto & SB & chargeok & global_veto)
+    mll_veto = veto_low_mass_mll(self, events)
+    return events, (catmask & bveto & SB & chargeok & mll_veto)
 
 
 @categorizer(uses={"channel_id",
@@ -442,8 +458,8 @@ def cat_4l_SR(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array, 
     bveto = (events.n_btag_medium < 1)
     SR = events.tight_sel == 1
     chargeok = events.leptons_os == 1
-    global_veto = get_global_lepton_veto(self, events)
-    return events, (catmask & bveto & SR & chargeok & global_veto)
+    mll_veto = veto_low_mass_mll(self, events)
+    return events, (catmask & bveto & SR & chargeok & mll_veto)
 
 
 @categorizer(uses={"channel_id",
@@ -458,8 +474,8 @@ def cat_4l_SB(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array, 
     bveto = (events.n_btag_medium < 1)
     SB = events.tight_sel == 0
     chargeok = events.leptons_os == 1
-    global_veto = get_global_lepton_veto(self, events)
-    return events, (catmask & bveto & SB & chargeok & global_veto)
+    mll_veto = veto_low_mass_mll(self, events)
+    return events, (catmask & bveto & SB & chargeok & mll_veto)
 
 
 @categorizer(uses={"channel_id",
@@ -473,8 +489,8 @@ def cat_3l1tau_SR(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Arr
     bveto = (events.n_btag_tight < 1)
     SR = events.tight_sel == 1
     chargeok = events.leptons_os == 1
-    global_veto = get_global_lepton_veto(self, events)
-    return events, (catmask & bveto & SR & chargeok & global_veto)
+    mll_veto = veto_low_mass_mll(self, events)
+    return events, (catmask & bveto & SR & chargeok & mll_veto)
 
 
 @categorizer(uses={"channel_id",
@@ -488,8 +504,8 @@ def cat_3l1tau_SB(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Arr
     bveto = (events.n_btag_tight < 1)
     SB = events.tight_sel == 0
     chargeok = events.leptons_os == 1
-    global_veto = get_global_lepton_veto(self, events)
-    return events, (catmask & bveto & SB & chargeok & global_veto)
+    mll_veto = veto_low_mass_mll(self, events)
+    return events, (catmask & bveto & SB & chargeok & mll_veto)
 
 
 @categorizer(uses={"channel_id",
@@ -502,8 +518,8 @@ def cat_2l2tau_SR(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Arr
     bveto = (events.n_btag_tight < 1)
     SR = events.tight_sel == 1
     chargeok = events.leptons_os == 1
-    global_veto = get_global_lepton_veto(self, events)
-    return events, (catmask & bveto & SR & chargeok & global_veto)
+    mll_veto = veto_low_mass_mll(self, events)
+    return events, (catmask & bveto & SR & chargeok & mll_veto)
 
 
 @categorizer(uses={"channel_id",
@@ -516,8 +532,8 @@ def cat_2l2tau_SB(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Arr
     bveto = (events.n_btag_tight < 1)
     SB = events.tight_sel == 0
     chargeok = events.leptons_os == 1
-    global_veto = get_global_lepton_veto(self, events)
-    return events, (catmask & bveto & SB & chargeok & global_veto)
+    mll_veto = veto_low_mass_mll(self, events)
+    return events, (catmask & bveto & SB & chargeok & mll_veto)
 
 
 @categorizer(uses={"channel_id",
@@ -529,8 +545,8 @@ def cat_1l3tau_SR(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Arr
     bveto = (events.n_btag_tight < 1)
     SR = events.tight_sel == 1
     chargeok = events.leptons_os == 1
-    global_veto = get_global_lepton_veto(self, events)
-    return events, (catmask & bveto & SR & chargeok & global_veto)
+    mll_veto = veto_low_mass_mll(self, events)
+    return events, (catmask & bveto & SR & chargeok & mll_veto)
 
 
 @categorizer(uses={"channel_id",
@@ -542,8 +558,8 @@ def cat_1l3tau_SB(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Arr
     bveto = (events.n_btag_tight < 1)
     SB = events.tight_sel == 0
     chargeok = events.leptons_os == 1
-    global_veto = get_global_lepton_veto(self, events)
-    return events, (catmask & bveto & SB & chargeok & global_veto)
+    mll_veto = veto_low_mass_mll(self, events)
+    return events, (catmask & bveto & SB & chargeok & mll_veto)
 
 
 @categorizer(uses={"channel_id",
@@ -554,8 +570,8 @@ def cat_4tau_SR(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array
     bveto = (events.n_btag_tight < 1)
     SR = events.tight_sel == 1
     chargeok = events.leptons_os == 1
-    global_veto = get_global_lepton_veto(self, events)
-    return events, (catmask & bveto & SR & chargeok & global_veto)
+    mll_veto = veto_low_mass_mll(self, events)
+    return events, (catmask & bveto & SR & chargeok & mll_veto)
 
 
 @categorizer(uses={"channel_id",
@@ -566,8 +582,8 @@ def cat_4tau_SB(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array
     bveto = (events.n_btag_tight < 1)
     SB = events.tight_sel == 0
     chargeok = events.leptons_os == 1
-    global_veto = get_global_lepton_veto(self, events)
-    return events, (catmask & bveto & SB & chargeok & global_veto)
+    mll_veto = veto_low_mass_mll(self, events)
+    return events, (catmask & bveto & SB & chargeok & mll_veto)
 
 
 # bveto
