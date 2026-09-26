@@ -746,7 +746,7 @@ def add_config(
     # configure some default objects
     # =============================================
     TopPtWeightFromTheory = False
-    cfg.x.disable_triggers = True
+    cfg.x.disable_triggers = False
     cfg.x.default_selector_steps = "all"
     cfg.x.default_calibrator = "default"
     cfg.x.default_selector = "default"
@@ -1259,19 +1259,20 @@ def add_config(
     add_external("electron_sf", (localizePOGSF(era, "EGM", f"electron{ver}.json.gz"), "v1"))
     add_external("btag_sf_corr", (localizePOGSF(era, "BTV", "btagging.json.gz"), "v1"))
 
-    getfromera = era
-    if year == 2024:
-        getfromera = "2023preBPix"  # these corrections are still missing for 2024 workaround with 2023 preBPix for now
-        add_external("met_phi_corr", (f"{os.path.dirname(os.path.abspath(__file__))}/../data/{metPOGJsonFile}", "v1"))
-    else:
-        add_external("met_phi_corr", (localizePOGSF(getfromera, "JME", f"{metPOGJsonFile}"), "v1"))
-    add_external("tau_sf", (localizePOGSF(getfromera, "TAU", f"{tauPOGJsonFile}"), "v1"))
-    add_external("pu_sf", (localizePOGSF(getfromera, "LUM", "puWeights.json.gz"), "v1"))
     # making the trigger SF files readable when running condor jobs
     trigger_sf_base = os.environ.get(
         "MULTILEPTON_TRIGGER_SF_BASE",
         os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "data", "TriggerScaleFactors"),
     )
+
+    getfromera = era
+    if year == 2024:
+        getfromera = "2023preBPix"  # these corrections are still missing for 2024 workaround with 2023 preBPix for now
+        add_external("met_phi_corr", (os.path.join(os.path.dirname(trigger_sf_base), metPOGJsonFile), "v1"))
+    else:
+        add_external("met_phi_corr", (localizePOGSF(getfromera, "JME", f"{metPOGJsonFile}"), "v1"))
+    add_external("tau_sf", (localizePOGSF(getfromera, "TAU", f"{tauPOGJsonFile}"), "v1"))
+    add_external("pu_sf", (localizePOGSF(getfromera, "LUM", "puWeights.json.gz"), "v1"))
     add_external("trigger_sf", Ext(
         os.path.join(trigger_sf_base, getfromera),
         subpaths=DotDict(
