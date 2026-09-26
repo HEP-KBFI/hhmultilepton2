@@ -452,7 +452,7 @@ def electron_selection(
             (events.Electron.convVeto == 1) &
             (events.Electron.lostHits == 0) &
             atleast_loose &
-            (promptMVA > 0.3) &
+            (promptMVA > -1.0) &
             (btag_values < btagcut_tight)
         )
 
@@ -478,13 +478,13 @@ def electron_selection(
             (events.Electron.lostHits <= 1) &
             atleast_loose
         )
-        idlepmvapassed = (atleast_loose & (promptMVA > 0.3))
-        idlepmvafailed = ((mva_iso_wp90 == 1) & (promptMVA <= 0.3))
-        jetisolepmvapassed = (promptMVA > 0.3)
+        idlepmvapassed = (atleast_loose & (promptMVA > -1.0))
+        idlepmvafailed = ((mva_iso_wp90 == 1) & (promptMVA <= -1.0))
+        jetisolepmvapassed = (promptMVA > -1.0)
         e_jetreliso = events.Electron.jetRelIso
         if self.config_inst.campaign.x.version == 15:
             e_jetreliso = ak.where(e_jetreliso == -1, events.Electron.pfRelIso04_all, e_jetreliso)
-        jetisolepmvafailed = ((promptMVA <= 0.3) & (e_jetreliso <= 0.7))
+        jetisolepmvafailed = ((promptMVA <= -1.0) & (e_jetreliso <= 0.7))
         fakeable_mask = (
             (events.Electron.pt > 10) &
             (cone_pt > 10.0) &
@@ -741,7 +741,7 @@ def muon_selection(
             (events.Muon.miniPFRelIso_all < 0.4) &
             atleast_medium &
             (btag_values < btagcut_tight) &
-            (promptMVA > 0.5)
+            (promptMVA > -1.0)
         )
 
         cone_pt = get_cone_pt_from_jetidx(
@@ -778,7 +778,7 @@ def muon_selection(
             (events.Muon.miniPFRelIso_all < 0.4) &
             atleast_loose &
             (btag_values < btagcut_tight) &
-            ((promptMVA > 0.5) | ((promptMVA <= 0.5) & (mu_jetreliso <= 0.8)))
+            ((promptMVA > -1.0) | ((promptMVA <= -1.0) & (mu_jetreliso <= 0.8)))
         )
 
     return tight_mask, fakeable_mask, loose_mask, cone_pt
