@@ -309,6 +309,10 @@ def compute_muon_mva_score(events) -> "ak.Array":  # noqa: F821
             print("  %-16s %12.5f %12.5f | %12.5f %12.5f | %7.2f%s"
                   % (feat, im, isd, tm, ts, pull, flag), file=sys.stderr)
 
+    # nothing to score in this chunk
+    if X.shape[0] == 0:
+        return ak.unflatten(np.zeros(0, dtype=np.float32), ak.num(muon.pt))
+
     # Apply scaler (trained on same features)
     X_scaled = scaler.transform(X)
 

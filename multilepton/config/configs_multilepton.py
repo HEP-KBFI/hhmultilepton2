@@ -806,7 +806,9 @@ def add_config(
             proc, id = convert_dataset_to_process(dataset_name, campaign, all_processes_from_campaign)
             if id is None or not campaign.has_dataset(dataset_name):
                 continue
-            cfg.add_process(proc, id)
+            # fixing cross section = 1 bug
+            # cfg.add_process(proc, id)
+            cfg.add_process(all_processes_from_campaign.get(id))
             dataset = cfg.add_dataset(campaign.get_dataset(dataset_name))
             dataset_names[dtype].append(dataset_name)
             process_names[dtype].append(proc)
@@ -1327,7 +1329,6 @@ def add_config(
             "GenJet.*",
             f"{cfg.x.met_name}.{{pt,phi,significance,covXX,covXY,covYY}}",
             "PV.npvs",
-            "HLT.*",
             # keep all columns added during selection and reduction, but skip cutflow features
             ColumnCollection.ALL_FROM_SELECTOR,
             skip_column("cutflow.*"),
@@ -1418,5 +1419,11 @@ def add_config(
     add_variables(cfg)
     add_met_filters(cfg)
     add_triggers(cfg)
+
+    # keep only the configured HLT paths
+    cfg.x.keep_columns["cf.ReduceEvents"] |= {
+        f"HLT.{trigger.hlt_field}"
+        for trigger in cfg.x.triggers
+    }
 
     return cfg

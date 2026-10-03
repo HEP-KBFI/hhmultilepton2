@@ -62,7 +62,8 @@ years:
   2024:
     run: 3
     campaigns: [""]
-    luminosity: 1090.08  # pb
+    # luminosity: 1090.08  # pb
+    luminosity: 109008.0  # pb
     luminosity-error: 0.013
     luminosity-uncertainties:
       - lumi_13p6TeV_correlated: 0.013
@@ -228,7 +229,7 @@ datasets:
       cmsdb: 
         - dy_m4to10_amcatnlo
         - dy_m10to50_amcatnlo
-        - dy_mumu_m800to1500_powheg
+        # - dy_mumu_m800to1500_powheg
         - dy_mumu_m50toinf_amcatnlo
         - dy_ee_m50toinf_amcatnlo
         - dy_tautau_m50toinf_amcatnlo
