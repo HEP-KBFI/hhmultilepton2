@@ -7,6 +7,7 @@ Collection of patches of underlying columnflow tasks.
 import os
 import law
 import getpass
+import shlex
 
 from columnflow.util import memoize
 
@@ -191,6 +192,33 @@ def patch_htcondor_forward_site_env():
         if prev_cmd:
             cmds.append(prev_cmd)
         config.render_variables["cf_pre_setup_command"] = " ".join(cmds)
+
+        # the bundle download in the job draws one uri at random with a single attempt, so send it
+        # over xrootd while the tasks themselves keep using the webdav base
+        law_cfg = law.config.Config.instance()
+        xrootd_base = law_cfg.get_expanded("wlcg_fs_sprace", "xrootd_base", None)
+        webdav_base = law_cfg.get_expanded("wlcg_fs_sprace", "webdav_base", None)
+
+        def keep_xrootd(uris):
+            parts = [p.strip() for p in uris.split(",") if p.strip()]
+            if xrootd_base and webdav_base:
+                parts = [
+                    (xrootd_base + p[len(webdav_base):]) if p.startswith(webdav_base) else p
+                    for p in parts
+                ]
+            return ",".join([p for p in parts if p.startswith("root://")] or parts)
+
+        for name in ["cf_repo_uris", "cf_software_uris", "cf_bash_sandbox_uris",
+                     "cf_cmssw_sandbox_uris"]:
+            value = config.render_variables.get(name)
+            if not value:
+                continue
+            if value.lstrip().startswith("\""):
+                config.render_variables[name] = " ".join(
+                    f"\"{keep_xrootd(item)}\"" for item in shlex.split(value)
+                )
+            else:
+                config.render_variables[name] = keep_xrootd(value)
 
         return config
 

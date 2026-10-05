@@ -1038,22 +1038,12 @@ def lepton_selection(
     }
 
     # Compute and add custom muon MVA scores as output column
-    try:
-        muon_mva_scores = compute_muon_mva_score(events)
-        events = set_ak_column(events, ("Muon", "muonLeptoMVA_hh"), muon_mva_scores)
-
-    except Exception as e:
-        print(f"Failed to compute custom muon MVA ({e}), creating dummy column with zeros")
-        events = set_ak_column(events, ("Muon", "muonLeptoMVA_hh"), ak.zeros_like(events.Muon.pt))
+    muon_mva_scores = compute_muon_mva_score(events)
+    events = set_ak_column(events, ("Muon", "muonLeptoMVA_hh"), muon_mva_scores)
 
     # Compute and add custom electron MVA scores as output column
-    try:
-        electron_mva_scores = compute_electron_mva_score(events)
-        events = set_ak_column(events, ("Electron", "electronLeptoMVA_hh"), electron_mva_scores)
-
-    except Exception as e:
-        print(f"Failed to compute custom electron MVA ({e}), creating dummy column with zeros")
-        events = set_ak_column(events, ("Electron", "electronLeptoMVA_hh"), ak.zeros_like(events.Electron.pt))
+    electron_mva_scores = compute_electron_mva_score(events)
+    events = set_ak_column(events, ("Electron", "electronLeptoMVA_hh"), electron_mva_scores)
 
     # prepare vectors for output vectors
     false_mask = (abs(events.event) < 0)
@@ -1246,12 +1236,9 @@ def lepton_selection(
         if (ch_key in self.mr_channels) != self.ffmr:
             continue
 
-        # eormu : set trig_ids to any particular trigger, so that eormu does not run over all triggers
+        # eormu : disabled in this checkout, for both mc and data
         if ch_key in {"ceormu"}:
-            if self.dataset_inst.is_mc:
-                trig_ids = tids.single_e
-            else:
-                continue
+            continue
 
         # 3l0th + 3l1th + 4l: single, double, and triple lepton triggers
         elif ch_key in {"c3e", "c4e"}:
@@ -1587,6 +1574,10 @@ def lepton_selection(
                     (ak.sum(mu_veto_bdt, axis=1) >= 1) &
                     (ak.sum(ch_tau_mask, axis=1) >= 0)
                 )
+
+                if not disable_triggers:
+                    e_base = e_base & fired
+                    mu_base = mu_base & fired
 
                 base_ok = e_base | mu_base
 
@@ -3118,27 +3109,33 @@ def lepton_selection(
     events = set_ak_column(events, "trig_match", trig_match)
 
     # convert lepton masks to sorted indices (pt for e/mu, iso for tau)
-    sel_electron_indices = sorted_indices_from_mask(sel_electron_mask, events.Electron.pt, ascending=False)
-    sel_muon_indices = sorted_indices_from_mask(sel_muon_mask, events.Muon.pt, ascending=False)
-    sel_tau_indices = sorted_indices_from_mask(sel_tau_mask, tau_sorting_key, ascending=False)
-    sel_noid_tau_indicies = sorted_indices_from_mask(sel_noid_tau_mask, events.Tau.pt, ascending=False)
+    # enforce uniform type across different chunks in given dataset file
+    def _idx(mask, metric):
+        idx = sorted_indices_from_mask(mask, metric, ascending=False)
+        return ak.enforce_type(ak.drop_none(idx, axis=-1), "var * int64")
 
-    sel_looseelectron_indices = sorted_indices_from_mask(sel_looseelectron_mask, events.Electron.pt, ascending=False)
-    sel_loosemuon_indices = sorted_indices_from_mask(sel_loosemuon_mask, events.Muon.pt, ascending=False)
+    sel_electron_indices = _idx(sel_electron_mask, events.Electron.pt)
+    sel_muon_indices = _idx(sel_muon_mask, events.Muon.pt)
+    sel_tau_indices = _idx(sel_tau_mask, tau_sorting_key)
+    sel_noid_tau_indicies = _idx(sel_noid_tau_mask, events.Tau.pt)
 
-    sel_tightelectron_indices = sorted_indices_from_mask(sel_tightelectron_mask, events.Electron.pt, ascending=False)
-    sel_tightmuon_indices = sorted_indices_from_mask(sel_tightmuon_mask, events.Muon.pt, ascending=False)
-    sel_isotau_indices = sorted_indices_from_mask(sel_isotau_mask, tau_sorting_key, ascending=False)
+    sel_looseelectron_indices = _idx(sel_looseelectron_mask, events.Electron.pt)
+    sel_loosemuon_indices = _idx(sel_loosemuon_mask, events.Muon.pt)
+
+    sel_tightelectron_indices = _idx(sel_tightelectron_mask, events.Electron.pt)
+    sel_tightmuon_indices = _idx(sel_tightmuon_mask, events.Muon.pt)
+    sel_isotau_indices = _idx(sel_isotau_mask, tau_sorting_key)
     # Saving cone-pT for fakeable leptons
+    # enforce uniform type across different chunks in given dataset file
     events = set_ak_column(
         events,
         "Electron.cone_pt",
-        electron_cone_pt,
+        ak.enforce_type(electron_cone_pt, "var * ?float32"),
     )
     events = set_ak_column(
         events,
         "Muon.cone_pt",
-        muon_cone_pt,
+        ak.enforce_type(muon_cone_pt, "var * ?float32"),
     )
     # events = set_ak_column(events, "Electron", events.Electron[sel_electron_indices])
     events = set_ak_column(events, "ElectronLoose", events.Electron[sel_looseelectron_indices])
