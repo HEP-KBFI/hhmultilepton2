@@ -455,7 +455,7 @@ def cat_4l_SR(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array, 
     catmask = catmask | (events.channel_id == self.config_inst.channels.n.c2e2mu.id)
     catmask = catmask | (events.channel_id == self.config_inst.channels.n.ce3mu.id)
     catmask = catmask | (events.channel_id == self.config_inst.channels.n.c4mu.id)
-    bveto = (events.n_btag_medium < 1)
+    bveto = (events.n_btag_tight < 1)
     SR = events.tight_sel == 1
     chargeok = events.leptons_os == 1
     mll_veto = veto_low_mass_mll(self, events)
@@ -471,7 +471,7 @@ def cat_4l_SB(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array, 
     catmask = catmask | (events.channel_id == self.config_inst.channels.n.c2e2mu.id)
     catmask = catmask | (events.channel_id == self.config_inst.channels.n.ce3mu.id)
     catmask = catmask | (events.channel_id == self.config_inst.channels.n.c4mu.id)
-    bveto = (events.n_btag_medium < 1)
+    bveto = (events.n_btag_tight < 1)
     SB = events.tight_sel == 0
     chargeok = events.leptons_os == 1
     mll_veto = veto_low_mass_mll(self, events)
