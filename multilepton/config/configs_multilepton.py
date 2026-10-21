@@ -226,7 +226,7 @@ def convert_dataset_to_process(dataset, campaign, all_processes_from_campaign):
     for production in ["_powheg", "_amcatnlo", "_pythia", "_madgraph"]:
         if production in dataset:
             process = dataset.replace(production, "")
-            if process in ["st_schannel_t_lep_4f", "st_schannel_tbar_lep_4f", "www_4f", "wwz_4f"]:
+            if process in ["st_schannel_t_lep_4f", "st_schannel_tbar_lep_4f", "www_4f", "wwz_4f", "thq_4f"]:
                 process = process.replace("_4f", "")
     # Find matching process and return its id
     id = None
@@ -779,8 +779,10 @@ def add_config(
 
     # Configure custom MVA models for lepton selection
     # Options: "custom" (XGBoost trained model), "nanoaod" (default NanoAOD MVA)
-    cfg.x.electron_mva_source = "custom"
-    cfg.x.muon_mva_source = "custom"
+    # cfg.x.electron_mva_source = "custom"
+    # cfg.x.muon_mva_source = "custom"
+    cfg.x.electron_mva_source = "nanoaod"
+    cfg.x.muon_mva_source = "nanoaod"
 
     ConfigureLuminosity(cfg, campaign, year, analysis_data)
     ConfigureLFNS(cfg)
@@ -1310,9 +1312,11 @@ def add_config(
             # event info
             "deterministic_seed",
             # object info
-            "Jet.{pt,eta,phi,mass,hadronFlavour,puId,btag*,nConstituents,deterministic_seed}",
-            "NonCleanedJet.{pt,eta,phi,mass,hadronFlavour,puId,hhbtag,btag*,nConstituents,deterministic_seed}",
-            "VBFJet.{pt,eta,phi,mass,hadronFlavour,puId,btag*,nConstituents,deterministic_seed}",
+            "Jet.{pt,eta,phi,mass,hadronFlavour,jetId,puIdDisc,btag*,nConstituents,deterministic_seed}",
+            "NonCleanedJet.{pt,eta,phi,mass,hadronFlavour,jetId,puIdDisc,hhbtag}",
+            "NonCleanedJet.{btag*,nConstituents,deterministic_seed}",
+            "VBFJet.{pt,eta,phi,mass,hadronFlavour,jetId,puIdDisc,btag*,nConstituents,deterministic_seed}",
+            "ForwardJet.{pt,eta,phi,mass,hadronFlavour,jetId,puIdDisc,btag*,nConstituents,deterministic_seed}",
             "FatJet.*",
             "SubJet{1,2}.*",
             "Electron.*",
@@ -1357,7 +1361,7 @@ def add_config(
         "normalization_weight_inclusive": [],
         "normalized_isr_weight": get_shifts("isr"),
         "normalized_fsr_weight": get_shifts("fsr"),
-        # "normalized_pu_weight": get_shifts("minbias_xs"),
+        "normalized_pu_weight": get_shifts("minbias_xs"),
         # "normalized_njet_btag_deepjet_weight": get_shifts(*(f"btag_{u}" for u in cfg.x.btag_unc_names)),
         # "electron_weight": get_shifts("e"),
         # "muon_weight": get_shifts("mu"),

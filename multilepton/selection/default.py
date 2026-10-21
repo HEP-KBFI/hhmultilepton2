@@ -162,7 +162,7 @@ def default(
     if self.config_inst.x("enable_gen_matching_studies", False):
         # run on both MC and data: for data, gen_matching_selection fills gen_match_category with
         # a neutral default so downstream categorizers (cat_nonfakes/cat_fakes/...) still find it
-        events, gen_matching_results = self[gen_matching_selection](events, **kwargs)
+        events, gen_matching_results = self[gen_matching_selection](events, lepton_results, **kwargs)
         results += gen_matching_results
 
     # jet selection
