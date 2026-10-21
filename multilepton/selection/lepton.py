@@ -452,7 +452,7 @@ def electron_selection(
             (events.Electron.convVeto == 1) &
             (events.Electron.lostHits == 0) &
             atleast_loose &
-            (promptMVA > -1.0) &
+            (promptMVA > 0.75) &
             (btag_values < btagcut_tight)
         )
 
@@ -478,13 +478,13 @@ def electron_selection(
             (events.Electron.lostHits <= 1) &
             atleast_loose
         )
-        idlepmvapassed = (atleast_loose & (promptMVA > -1.0))
-        idlepmvafailed = ((mva_iso_wp90 == 1) & (promptMVA <= -1.0))
-        jetisolepmvapassed = (promptMVA > -1.0)
+        idlepmvapassed = (atleast_loose & (promptMVA > 0.75))
+        idlepmvafailed = ((mva_iso_wp90 == 1) & (promptMVA <= 0.75))
+        jetisolepmvapassed = (promptMVA > 0.75)
         e_jetreliso = events.Electron.jetRelIso
         if self.config_inst.campaign.x.version == 15:
             e_jetreliso = ak.where(e_jetreliso == -1, events.Electron.pfRelIso04_all, e_jetreliso)
-        jetisolepmvafailed = ((promptMVA <= -1.0) & (e_jetreliso <= 0.7))
+        jetisolepmvafailed = ((promptMVA <= 0.75) & (e_jetreliso <= 0.7))
         fakeable_mask = (
             (events.Electron.pt > 10) &
             (cone_pt > 10.0) &
@@ -653,75 +653,75 @@ def muon_selection(
         # Judge success by AUC / fake-rate at matched signal efficiency, NOT by counts at a
         # fixed numeric cut (the two scores are on different scales). Muon analysis cut is 0.5.
         # =========================================
-        debug = True
-        if debug and self.dataset_inst.is_mc and "genPartFlav" in events.Muon.fields:
-            try:
-                mu_custom = ak.to_numpy(ak.flatten(compute_muon_mva_score(events))).astype(np.float64)
-            except Exception as cmp_e:
-                logger.warning_once(f"[Comparison muon] custom muon MVA failed ({cmp_e})")
-                mu_custom = None
-
-            # same nanoAOD score the selection actually uses
-            if "promptMVA" in events.Muon.fields:
-                mu_nano = ak.to_numpy(ak.flatten(events.Muon.promptMVA)).astype(np.float64)
-            else:
-                mu_nano = ak.to_numpy(ak.flatten(events.Muon.mvaTTH)).astype(np.float64)
-
-            mu_flav = ak.to_numpy(ak.flatten(events.Muon.genPartFlav))
-            mu_is_sig = (mu_flav == 1)          # prompt muon -> signal
-            mu_is_bkg = (mu_flav == 0)          # jet fake    -> background
-            mu_keep = mu_is_sig | mu_is_bkg
-
-            if mu_custom is not None and mu_is_sig.sum() > 0 and mu_is_bkg.sum() > 0:
-                y = mu_is_sig[mu_keep].astype(int)
-                xc, xn = mu_custom[mu_keep], mu_nano[mu_keep]
-                n_sig, n_bkg = int(y.sum()), int((y == 0).sum())
-
-                from sklearn.metrics import roc_auc_score
-                auc_c, auc_n = roc_auc_score(y, xc), roc_auc_score(y, xn)
-
-                # nano's signal eff at its 0.5 cut, then the custom threshold giving the SAME
-                # signal eff -> compare background efficiency
-                sig_eff_nano = float((xn[y == 1] > 0.5).mean())
-                bkg_eff_nano = float((xn[y == 0] > 0.5).mean())
-                thr_c = float(np.quantile(xc[y == 1], 1.0 - sig_eff_nano))
-                bkg_eff_custom = float((xc[y == 0] > thr_c).mean())
-
-                logger.info_once(
-                    f"[Comparison muon] gen-matched n_sig={n_sig} n_bkg={n_bkg} | \n"
-                    f"AUC custom={auc_c:.4f} nano={auc_n:.4f} | \n"
-                    f"@ matched sig-eff={sig_eff_nano:.3f}: bkg-eff nano={bkg_eff_nano:.4f} \n"
-                    f"custom={bkg_eff_custom:.4f} (custom thr={thr_c:.3f})",
-                )
-
-                # ---- event-level yield comparison (nano vs custom) at matched signal eff ----
-                n_per_evt = ak.to_numpy(ak.num(events.Muon.pt, axis=1))
-                custom_jag = ak.unflatten(mu_custom, n_per_evt)
-                nano_jag = ak.unflatten(mu_nano, n_per_evt)
-                nano_thr, custom_thr = 0.5, thr_c
-
-                n_evt = len(events)
-                evt_nano = int(ak.sum(ak.any(nano_jag > nano_thr, axis=1)))
-                evt_custom = int(ak.sum(ak.any(custom_jag > custom_thr, axis=1)))
-                sig_keep_nano = int(((mu_nano > nano_thr) & mu_is_sig).sum())
-                sig_keep_custom = int(((mu_custom > custom_thr) & mu_is_sig).sum())
-                fake_keep_nano = int(((mu_nano > nano_thr) & mu_is_bkg).sum())
-                fake_keep_custom = int(((mu_custom > custom_thr) & mu_is_bkg).sum())
-
-                # S/sqrt(B) significance-like figure (see electron block for rationale)
-                z_nano = sig_keep_nano / np.sqrt(fake_keep_nano) if fake_keep_nano > 0 else float("inf")
-                z_custom = sig_keep_custom / np.sqrt(fake_keep_custom) if fake_keep_custom > 0 else float("inf")
-                z_gain = (z_custom / z_nano - 1.0) * 100.0 if np.isfinite(z_nano) and z_nano > 0 else float("nan")
-
-                logger.info_once(
-                    f"[Yield muon] nano>{nano_thr:.3f} vs custom>{custom_thr:.3f} (matched sig-eff) | \n"
-                    f"events(>=1 sel mu)/{n_evt}: nano={evt_nano} custom={evt_custom} \n"
-                    f"(delta={evt_custom - evt_nano:+d}) | \n"
-                    f"prompt-mu kept: nano={sig_keep_nano} custom={sig_keep_custom} | \n"
-                    f"fake-mu kept: nano={fake_keep_nano} custom={fake_keep_custom} \n"
-                    f"(fakes removed by custom: {fake_keep_nano - fake_keep_custom:+d}) | \n"
-                    f"S/sqrt(B): nano={z_nano:.2f} custom={z_custom:.2f} (gain={z_gain:+.1f}%)",
-                )
+        # debug = True
+        # if debug and self.dataset_inst.is_mc and "genPartFlav" in events.Muon.fields:
+        #     try:
+        #         mu_custom = ak.to_numpy(ak.flatten(compute_muon_mva_score(events))).astype(np.float64)
+        #     except Exception as cmp_e:
+        #         logger.warning_once(f"[Comparison muon] custom muon MVA failed ({cmp_e})")
+        #         mu_custom = None
+        #
+        #     # same nanoAOD score the selection actually uses
+        #     if "promptMVA" in events.Muon.fields:
+        #         mu_nano = ak.to_numpy(ak.flatten(events.Muon.promptMVA)).astype(np.float64)
+        #     else:
+        #         mu_nano = ak.to_numpy(ak.flatten(events.Muon.mvaTTH)).astype(np.float64)
+        #
+        #     mu_flav = ak.to_numpy(ak.flatten(events.Muon.genPartFlav))
+        #     mu_is_sig = (mu_flav == 1)          # prompt muon -> signal
+        #     mu_is_bkg = (mu_flav == 0)          # jet fake    -> background
+        #     mu_keep = mu_is_sig | mu_is_bkg
+        #
+        #     if mu_custom is not None and mu_is_sig.sum() > 0 and mu_is_bkg.sum() > 0:
+        #         y = mu_is_sig[mu_keep].astype(int)
+        #         xc, xn = mu_custom[mu_keep], mu_nano[mu_keep]
+        #         n_sig, n_bkg = int(y.sum()), int((y == 0).sum())
+        #
+        #         from sklearn.metrics import roc_auc_score
+        #         auc_c, auc_n = roc_auc_score(y, xc), roc_auc_score(y, xn)
+        #
+        #         # nano's signal eff at its 0.5 cut, then the custom threshold giving the SAME
+        #         # signal eff -> compare background efficiency
+        #         sig_eff_nano = float((xn[y == 1] > 0.5).mean())
+        #         bkg_eff_nano = float((xn[y == 0] > 0.5).mean())
+        #         thr_c = float(np.quantile(xc[y == 1], 1.0 - sig_eff_nano))
+        #         bkg_eff_custom = float((xc[y == 0] > thr_c).mean())
+        #
+        #         logger.info_once(
+        #             f"[Comparison muon] gen-matched n_sig={n_sig} n_bkg={n_bkg} | \n"
+        #             f"AUC custom={auc_c:.4f} nano={auc_n:.4f} | \n"
+        #             f"@ matched sig-eff={sig_eff_nano:.3f}: bkg-eff nano={bkg_eff_nano:.4f} \n"
+        #             f"custom={bkg_eff_custom:.4f} (custom thr={thr_c:.3f})",
+        #         )
+        #
+        #         # ---- event-level yield comparison (nano vs custom) at matched signal eff ----
+        #         n_per_evt = ak.to_numpy(ak.num(events.Muon.pt, axis=1))
+        #         custom_jag = ak.unflatten(mu_custom, n_per_evt)
+        #         nano_jag = ak.unflatten(mu_nano, n_per_evt)
+        #         nano_thr, custom_thr = 0.5, thr_c
+        #
+        #         n_evt = len(events)
+        #         evt_nano = int(ak.sum(ak.any(nano_jag > nano_thr, axis=1)))
+        #         evt_custom = int(ak.sum(ak.any(custom_jag > custom_thr, axis=1)))
+        #         sig_keep_nano = int(((mu_nano > nano_thr) & mu_is_sig).sum())
+        #         sig_keep_custom = int(((mu_custom > custom_thr) & mu_is_sig).sum())
+        #         fake_keep_nano = int(((mu_nano > nano_thr) & mu_is_bkg).sum())
+        #         fake_keep_custom = int(((mu_custom > custom_thr) & mu_is_bkg).sum())
+        #
+        #         # S/sqrt(B) significance-like figure (see electron block for rationale)
+        #         z_nano = sig_keep_nano / np.sqrt(fake_keep_nano) if fake_keep_nano > 0 else float("inf")
+        #         z_custom = sig_keep_custom / np.sqrt(fake_keep_custom) if fake_keep_custom > 0 else float("inf")
+        #         z_gain = (z_custom / z_nano - 1.0) * 100.0 if np.isfinite(z_nano) and z_nano > 0 else float("nan")
+        #
+        #         logger.info_once(
+        #             f"[Yield muon] nano>{nano_thr:.3f} vs custom>{custom_thr:.3f} (matched sig-eff) | \n"
+        #             f"events(>=1 sel mu)/{n_evt}: nano={evt_nano} custom={evt_custom} \n"
+        #             f"(delta={evt_custom - evt_nano:+d}) | \n"
+        #             f"prompt-mu kept: nano={sig_keep_nano} custom={sig_keep_custom} | \n"
+        #             f"fake-mu kept: nano={fake_keep_nano} custom={fake_keep_custom} \n"
+        #             f"(fakes removed by custom: {fake_keep_nano - fake_keep_custom:+d}) | \n"
+        #             f"S/sqrt(B): nano={z_nano:.2f} custom={z_custom:.2f} (gain={z_gain:+.1f}%)",
+        #         )
         # =========================================
 
         closestjet_indicies = events.Muon.jetIdx[:, :]
@@ -741,7 +741,7 @@ def muon_selection(
             (events.Muon.miniPFRelIso_all < 0.4) &
             atleast_medium &
             (btag_values < btagcut_tight) &
-            (promptMVA > -1.0)
+            (promptMVA > 0.3)
         )
 
         cone_pt = get_cone_pt_from_jetidx(
@@ -778,7 +778,7 @@ def muon_selection(
             (events.Muon.miniPFRelIso_all < 0.4) &
             atleast_loose &
             (btag_values < btagcut_tight) &
-            ((promptMVA > -1.0) | ((promptMVA <= -1.0) & (mu_jetreliso <= 0.8)))
+            ((promptMVA > 0.3) | ((promptMVA <= 0.3) & (mu_jetreliso <= 0.8)))
         )
 
     return tight_mask, fakeable_mask, loose_mask, cone_pt

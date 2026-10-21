@@ -41,12 +41,13 @@ ak = maybe_import("awkward")
         IF_RUN_2("Jet.puId"),
         IF_NANO_V12("Jet.btagPNetB"),
         IF_NANO_V14("Jet.btagPNetB"),
-        IF_NANO_V15("Jet.{btagPNetB,btagUParTAK4B}"),
+        IF_NANO_V15("Jet.{btagPNetB,btagUParTAK4B,puIdDisc}"),
     },
     produces={
         # hhbtag,
         "Jet.hhbtag", "matched_trigger_ids",
         "n_btag_medium", "n_btag_tight",
+        IF_NANO_V15("Jet.jetId"),
     },
 )
 def jet_selection(
@@ -99,6 +100,14 @@ def jet_selection(
         ak4_mask &
         (events.Jet.pt > 20.0) &
         (abs(events.Jet.eta) < 2.5)
+    )
+
+    # forward jets
+    forward_mask = (
+        ak4_mask &
+        (events.Jet.pt > 20.0) &
+        (abs(events.Jet.eta) >= 2.5) &
+        (abs(events.Jet.eta) < 4.7)
     )
 
     # default jets (no cleaning)
@@ -418,6 +427,7 @@ def jet_selection(
     # pt sorted indices to convert mask
     jet_indices = sorted_indices_from_mask(default_mask, events.Jet.pt, ascending=False)
     jet_indices_no_clean = sorted_indices_from_mask(default_mask_noclean, events.Jet.pt, ascending=False)
+    forwardjet_indices = sorted_indices_from_mask(forward_mask, events.Jet.pt, ascending=False)
 
     # get indices of the two hhbjets
     # hhbjet_indices = sorted_indices_from_mask(hhbjet_mask, hhbtag_scores, ascending=False)
@@ -443,6 +453,7 @@ def jet_selection(
     # some final type conversions
     jet_indices = ak.values_astype(ak.fill_none(jet_indices, 0), np.int32)
     jet_indices_no_clean = ak.values_astype(ak.fill_none(jet_indices_no_clean, 0), np.int32)
+    forwardjet_indices = ak.values_astype(ak.fill_none(forwardjet_indices, 0), np.int32)
     # hhbjet_indices = ak.values_astype(hhbjet_indices, np.int32)
     # non_hhbjet_indices = ak.values_astype(ak.fill_none(non_hhbjet_indices, 0), np.int32)
     fatjet_indices = ak.values_astype(fatjet_indices, np.int32)
@@ -484,6 +495,7 @@ def jet_selection(
                 # "HHBJet": hhbjet_indices,
                 # "NonHHBJet": non_hhbjet_indices,
                 "VBFJet": vbfjet_indices,
+                "ForwardJet": forwardjet_indices,
             },
             "FatJet": {
                 "FatJet": fatjet_indices,

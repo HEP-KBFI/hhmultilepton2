@@ -123,6 +123,7 @@ datasets:
           - hh_ggf_hww_hzz_3l_kl1_kt1_powheg
           - hh_ggf_hww_hzz_3l_kl2p45_kt1_powheg
           - hh_ggf_hww_hzz_3l_kl5_kt1_powheg
+          - hh_ggf_hww_hzz_4lplus_kl1_kt1_powheg
       vbf:
         tag: ["vbf", "nonresonant_signal", "signal"]
         color: "#e76300" # dark_orange
@@ -190,6 +191,7 @@ datasets:
           - hh_vbf_hww_hzz_3l_kvm1p21_k2v1p94_klm0p94_madgraph
           - hh_vbf_hww_hzz_3l_kvm1p6_k2v2p72_klm1p36_madgraph
           - hh_vbf_hww_hzz_3l_kvm1p83_k2v3p57_klm3p39_madgraph
+          - hh_vbf_hww_hzz_4lplus_kv1_k2v1_kl1_madgraph
 
   background:
     ttbar:
@@ -222,6 +224,7 @@ datasets:
         - ttz_zll_m50toinf_amcatnlo
         - ttww_madgraph
         - ttw_wlnu_amcatnlo
+        - tttt_amcatnlo
     dy:
       tag: ["dy"]
       color: "#3f90da" # bright_blue
@@ -233,6 +236,9 @@ datasets:
         - dy_mumu_m50toinf_amcatnlo
         - dy_ee_m50toinf_amcatnlo
         - dy_tautau_m50toinf_amcatnlo
+        - dy_ee_m10to50_powheg      # 2024: low-mass DY only per flavour
+        - dy_mumu_m10to50_powheg
+        - dy_tautau_m10to50_powheg
         - dy_m50toinf_0j_amcatnlo
         - dy_m50toinf_1j_amcatnlo
         - dy_m50toinf_2j_amcatnlo
@@ -296,6 +302,18 @@ datasets:
       color: "#f7c331" # yellow
       cmsdb:
         - zz_pythia
+    conversions:
+      # prompt photon + conversion backgrounds; inclusive samples only (the pT-binned ones need stitching)
+      # NOTE: overlap with tt / w_lnu / dy (prompt photons) is not removed yet -> double counting until a
+      # gen-photon overlap removal is in place
+      tag: ["conversions"]
+      color: "#717581" # grey blue
+      label: 
+      cmsdb:
+        - ttg_amcatnlo
+        - wg_wlnu_amcatnlo
+        - dyg_m4to50_amcatnlo
+        - dyg_m50toinf_amcatnlo
     single_higgs:
       tag: ["h"]
       color: "#92dadd" # teal
@@ -319,6 +337,8 @@ datasets:
         - zh_gg_znunu_hbb_powheg
         - tth_hbb_powheg
         - tth_hnonbb_powheg
+        - thq_4f_madgraph
+        - thw_madgraph
     vvv: 
       tag: 
       color: "#a96b59" # brown 
@@ -335,6 +355,7 @@ datasets:
       cmsdb:
         - wz_pythia
         - ww_pythia
+        - ww_ss_2j_madgraph
 ## negligible  drop for now  
 #      - z_qq_1j_pt100to200_amcatnlo
 #      - z_qq1j_pt200to400_amcatnlo

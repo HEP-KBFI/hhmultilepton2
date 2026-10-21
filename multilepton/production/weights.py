@@ -62,6 +62,7 @@ def normalized_pu_weight_post_init(self: Producer, task: law.Task, **kwargs) -> 
             (task.global_shift_inst.is_nominal or not weight_name.endswith(("_up", "_down")))
         )
     }
+    self.produces |= {f"normalized_{weight_name}" for weight_name in self.pu_weight_names}
 
 
 @normalized_pu_weight.requires
