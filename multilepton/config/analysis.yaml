@@ -115,9 +115,11 @@ datasets:
           - hh_ggf_htt_hvv_kl5_kt1_powheg
           - hh_ggf_htt_htt_kl0_kt1_powheg
           - hh_ggf_htt_htt_kl1_kt1_powheg
+          - hh_ggf_htt_htt_kl2p45_kt1_powheg
           - hh_ggf_htt_htt_kl5_kt1_powheg
           - hh_ggf_hvv_hvv_2lplus_kl0_kt1_powheg
           - hh_ggf_hvv_hvv_2lplus_kl1_kt1_powheg
+          - hh_ggf_hvv_hvv_2lplus_kl2p45_kt1_powheg
           - hh_ggf_hvv_hvv_2lplus_kl5_kt1_powheg
           - hh_ggf_hww_hzz_3l_kl0_kt1_powheg
           - hh_ggf_hww_hzz_3l_kl1_kt1_powheg
