@@ -223,7 +223,7 @@ def build_stitching_config(procs, process_name, inclusive_dataset):
 
 def convert_dataset_to_process(dataset, campaign, all_processes_from_campaign):
     process = dataset
-    for production in ["_powheg", "_amcatnlo", "_pythia", "_madgraph"]:
+    for production in ["_powheg", "_amcatnlo", "_pythia", "_madgraph", "_mcfm"]:
         if production in dataset:
             process = dataset.replace(production, "")
             if process in ["st_schannel_t_lep_4f", "st_schannel_tbar_lep_4f", "www_4f", "wwz_4f", "thq_4f"]:
@@ -818,6 +818,7 @@ def add_config(
             if dataset.name.startswith("qcd_") or law.util.multi_match(dataset.name, [
                 r"^(ww|wz|zz)_.*pythia$",
                 r"^tt(w|z)_.*amcatnlo$",
+                r"^gg(ww|zz)_.*mcfm$",  # 2024 mcfm samples have empty LHEScaleWeight / LHEPdfWeight
             ]):
                 # datasets that are known to have no lhe info at all
                 dataset.add_tag("no_lhe_weights")

@@ -304,6 +304,16 @@ datasets:
       color: "#f7c331" # yellow
       cmsdb:
         - zz_pythia
+        # NOTE: the exclusive qqZZ + ggZZ samples below overlap with the inclusive zz_pythia
+        - zz_zll_zll_powheg
+        - zz_zqq_zll_powheg
+        - zz_zll_znunu_powheg
+        - ggzz_zee_zee_mcfm
+        - ggzz_zee_zmm_mcfm
+        - ggzz_zee_ztt_mcfm
+        - ggzz_zmm_zmm_mcfm
+        - ggzz_zmm_ztt_mcfm
+        - ggzz_ztt_ztt_mcfm
     conversions:
       # prompt photon + conversion backgrounds; inclusive samples only (the pT-binned ones need stitching)
       # NOTE: overlap with tt / w_lnu / dy (prompt photons) is not removed yet -> double counting until a
@@ -358,6 +368,17 @@ datasets:
         - wz_pythia
         - ww_pythia
         - ww_ss_2j_madgraph
+        # NOTE: the exclusive WZ / qqWW + ggWW samples below overlap with the inclusive wz_pythia / ww_pythia
+        - wz_wlnu_zll_powheg
+        - wz_wqq_zll_powheg
+        - wz_wlnu_zqq_powheg
+        - ww_dl_powheg
+        - ggww_wenu_wenu_mcfm
+        - ggww_wenu_wmnu_mcfm
+        - ggww_wenu_wtnu_mcfm
+        - ggww_wmnu_wmnu_mcfm
+        - ggww_wmnu_wtnu_mcfm
+        - ggww_wtnu_wtnu_mcfm
 ## negligible  drop for now  
 #      - z_qq_1j_pt100to200_amcatnlo
 #      - z_qq1j_pt200to400_amcatnlo
