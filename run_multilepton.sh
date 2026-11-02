@@ -1,36 +1,38 @@
 #!/usr/bin/env bash
+# =====================================================================
+# Launch (survives logout / closing your laptop):
+#   nohup bash run_multilepton.sh > ~/cf_dev.log 2>&1 & disown
+#
+# Watch (clean status only, drop the luigi spam):
+#   tail -f ~/cf_dev.log | grep --line-buffered -E "all: [0-9]|submitted [0-9]+/|failed|error|ERROR"
+#   squeue -u kjaffel -h -o "%T %r" | sort | uniq -c
+#
+# Snapshot without running anything:  add  --print-status 2  to a law command.
+# =====================================================================
 
-export MVA_FEATURE_DEBUG=0
-#export MVA_ZERO_JETPTRELV2=1
+# ---- per-job slurm walltime ----
+export CF_SLURM_RUNTIME=6h
 
-#task=cf.GetDatasetLFNs
-#task=cf.CalibrateEvents
-task=cf.SelectEvents
-#task=cf.ReduceEvents
-#task=cf.ProduceColumns
-#task=cf.CreateYieldTable
-#task=cf.PlotVariables1D
+# ---------------- what to run ----------------
+task=cf.SelectEvents        # cf.CalibrateEvents | cf.SelectEvents | cf.ReduceEvents | cf.ProduceColumns
+                            #   | cf.CreateYieldTable | cf.PlotVariables1D
+config=24_v15_central
+version=matheus_new_prod_ext2   # <-- YOUR dev version; bump it for a fresh run
 
-version=matheus_new_prod #test_$(date +%Y-%m-%d)
-limit_dataset_files=1   # -1 to process all files
-parallel_jobs=600		
-workflow=local          # choices: local, slurm, htcondor
-producers=default
 selector=default
 calibrators=default
-_shift=nominal
+producers=default
+limit_dataset_files=-1      # -1 = all files
+
+# ---------------- speed / scheduling ----------------
+tasks_per_job=10            # bundle this many files into one slurm job
+parallel_jobs=200           # max concurrent jobs
+poll_interval=120           # seconds between status prints (less log spam)
+
+# ---------------- plotting / yield only ----------------
 categories=c4mu,c3mu1tau,c2mu2tau
 variables=nmu
-
-#config=22preEE_v14_private
-#config=22postEE_v14_private
-#config=23preBPix_v14_private
-#config=23postBPix_v14_private
-#config=22preEE_v12_central
-#config=22postEE_v12_central
-#config=23preBPix_v12_central
-#config=23postBPix_v12_central
-config=24_v15_central
+_shift=nominal
 
 requested_datasets=(
 dy_tautau_m10to50_powheg
@@ -47,81 +49,66 @@ dy_mumu_m50toinf_1j_amcatnlo
 dy_mumu_m50toinf_2j_amcatnlo
 )
 
-not_now_requested_datasets=(
-hh_ggf_htt_htt_kl1_kt1_powheg
-qcd_mu_pt30to50_pythia
-qcd_mu_pt50to80_pythia
-qcd_mu_pt80to120_pythia
-qcd_mu_pt1000toinf_pythia
-qcd_mu_pt120to170_pythia
-qcd_mu_pt170to300_pythia
-qcd_mu_pt300to470_pythia
-qcd_mu_pt470to600_pythia
-qcd_mu_pt600to800_pythia
-qcd_mu_pt800to1000_pythia
-)
+datasets_csv=$(IFS=,; echo "${requested_datasets[*]}")
 
-plus_args=""
-
-# Arguments only needed for plotting/yield tables
-if [[ "$task" == "cf.PlotVariables1D" || "$task" == "cf.CreateYieldTable" ]]; then
-    plus_args+=" --producers ${producers}"
-    plus_args+=" --categories ${categories}"
-    
-    # need to enforce previous tasks to the same limit_dataset_files
-    cf_tasks=( cf.GetDatasetLFNs cf.CalibrateEvents cf.SelectEvents cf.ReduceEvents cf.ProduceColumns
-    )
-    for cft in "${cf_tasks[@]}"; do
-        plus_args+=" --${cft}-limit-dataset-files ${limit_dataset_files}"
+# ===================================================================
+# Aggregation tasks (yield table / plots) combine all datasets in one call
+# ===================================================================
+if [[ "$task" == cf.CreateYieldTable || "$task" == cf.PlotVariables1D ]]; then
+    extra=( --producers "$producers" --categories "$categories" )
+    for cft in cf.GetDatasetLFNs cf.CalibrateEvents cf.SelectEvents cf.ReduceEvents cf.ProduceColumns; do
+        extra+=( --${cft}-limit-dataset-files "$limit_dataset_files" )
     done
-    
-    # variables to plots with shift up/down/nominal
-    if [[ "$task" == "cf.PlotVariables1D" ]]; then
-        plus_args+=" --variables ${variables}"
-        plus_args+=" --shift ${_shift}"
-    fi
-
-else
-    plus_args+=" --limit-dataset-files ${limit_dataset_files}"
-    plus_args+=" --shift ${_shift}"
-fi
-    
-
-# Arguments only for batch workflows
-if [[ "$workflow" == "slurm" || "$workflow" == "htcondor" ]]; then
-    parallel_jobs=${parallel_jobs:-4}
-    plus_args+=" --parallel-jobs ${parallel_jobs}"
-fi
-
-
-for dataset in "${requested_datasets[@]}"; do
-    echo " working on ..."
+    [[ "$task" == cf.PlotVariables1D ]] && extra+=( --variables "$variables" --shift "$_shift" )
     set -x
-    law run "${task}" \
-        --config "${config}" \
-        --dataset "${dataset}" \
-        --workflow "${workflow}" \
-        --version "${version}" \
-        --selector "${selector}" \
-        --calibrators "${calibrators}" \
+    law run "$task" \
+        --config "$config" --datasets "$datasets_csv" \
+        --version "$version" --selector "$selector" --calibrators "$calibrators" \
+        --workers 4 --retries 1 "${extra[@]}" "$@"
+    set +x
+    exit $?
+fi
+
+# ===================================================================
+# Per-dataset processing: ONE long-lived driver, datasets one after another.
+# This is the robust choice: if the driver ever dies, just re-run this script
+# -- columnflow skips every finished branch and only resubmits what's missing.
+# Each dataset is now fast because of --tasks-per-job.
+# ===================================================================
+for dataset in "${requested_datasets[@]}"; do
+    echo "=================  $dataset  ================="
+    set -x
+    law run "$task" \
+        --config "$config" \
+        --dataset "$dataset" \
+        --version "$version" \
+        --workflow slurm \
+        --selector "$selector" \
+        --calibrators "$calibrators" \
+        --limit-dataset-files "$limit_dataset_files" \
+        --shift "$_shift" \
+        --tasks-per-job "$tasks_per_job" \
+        --cf.CalibrateEvents-tasks-per-job "$tasks_per_job" \
+        --parallel-jobs "$parallel_jobs" \
+        --poll-interval "$poll_interval" \
         --retries 1 \
         --workers 1 \
-        ${plus_args} \
         "$@"
-        #--clear-logs \
-        #--cleanup-jobs \
     set +x
 done
 
-# options: 
-#   --configs: 
-#        22preEE_v14_private, 22postEE_v14_private, 23preBPix_v14_private, 23postBPix_v14_private
-#        22preEE_v12_central, 22postEE_v12_central, 23preBPix_v12_central, 23postBPix_v12_central, 24_v15_central
-#   --processes:
-#       all_data, all_signals, all_backgrounds,       
-#       resonant, nonresonant, nonresonant_ggf, nonresonant_vbf
-#       ggf_4v, ggf_4t, ggf_2t2v, vbf_4v, vbf_4t, vbf_2t2v
-#       4v, 4t, 2t2v
-#   --datasets:
-#       all_data, all_backgrounds, all_signals
-#       ttbar, single_top, dy, wjets, qcd, zz, single_higgs, vvv, others
+# -------------------------------------------------------------------
+# OPTIONAL — true "all datasets at once" under a SINGLE scheduler.
+# Comment out the for-loop above and use this instead if you prefer it
+# (one driver submits every dataset together, one global --parallel-jobs cap):
+#
+#   law run cf.SelectEventsWrapper \
+#       --configs "$config" --datasets "$datasets_csv" --shifts "$_shift" \
+#       --version "$version" --selector "$selector" --calibrators "$calibrators" \
+#       --workflow slurm --limit-dataset-files "$limit_dataset_files" \
+#       --cf.SelectEvents-tasks-per-job "$tasks_per_job" \
+#       --cf.SelectEvents-parallel-jobs "$parallel_jobs" \
+#       --cf.CalibrateEvents-tasks-per-job "$tasks_per_job" \
+#       --cf.CalibrateEvents-parallel-jobs "$parallel_jobs" \
+#       --poll-interval "$poll_interval" --workers 4 --retries 1
+# -------------------------------------------------------------------
