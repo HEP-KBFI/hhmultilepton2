@@ -19,6 +19,7 @@ export CF_SCHEDULER_HOST="127.0.0.1"
 export CF_SCHEDULER_PORT="8082"
 export CF_FLAVOR="cms"
 export LAW_CMS_VO="cms"
+export WLCG_REMOTE_SETUP_FORCE="false"
 
 if [ "$cluster" = "manivald" ]; then
     export OPENBLAS_NUM_THREADS=2
@@ -28,9 +29,10 @@ if [ "$cluster" = "manivald" ]; then
     export CF_SLURM_FLAVOR="manivald"
     export CF_SLURM_PARTITION="main"
     export CF_SLURM_CPUS=4
-    export CF_SLURM_RUNTIME=6h
+    export CF_SLURM_RUNTIME=20h
     export CF_SLURM_MEM_PER_CPU=8GB
-    export CF_CLUSTER_LOCAL_PATH="/home/$CF_CERN_USER/HHMultilepton_Run3/"
+    export CF_CLUSTER_LOCAL_PATH="/local/$CF_CERN_USER/HHMultilepton_Run3/"
+    export CF_WLCG_CACHE_ROOT="$CF_CLUSTER_LOCAL_PATH/cf_scratch"
     export TMPDIR="/scratch/local/$CF_CERN_USER"
 
 elif [ "$cluster" = "lxplus" ]; then
@@ -50,13 +52,12 @@ elif [ "$cluster" = "lxplus" ]; then
         export MULTILEPTON_RES_SELECT="htcondor_memory=6.25GB, crab_memory=5000MB"
         export MULTILEPTON_RES_PRODUCE="htcondor_memory=3.00GB, crab_memory=3000MB"
         export MULTILEPTON_TRIGGER_SF_BASE="$MULTILEPTON_BASE/multilepton/data/TriggerScaleFactors"
-        export WLCG_FILE_SYSTEM="wlcg_fs_sprace"
+        export WLCG_FILE_SYSTEM="wlcg_fs_sprace_webdav"
+        export WLCG_REMOTE_SETUP_FORCE="true"
         export CF_CRAB_STORAGE_ELEMENT="T2_BR_SPRACE"
         export CF_HTCONDOR_LOGS=false
-        # work area on AFS while the clone itself lives on EOS
-        export CF_CLUSTER_LOCAL_PATH="/afs/cern.ch/user/$CF_CERN_USER_FIRSTCHAR/$CF_CERN_USER/HHMultilepton_Run3"
-        # Keep the wlcg cache out of AFS
-        export CF_WLCG_CACHE_ROOT="$TMPDIR/cf_wlcg_cache"
+        export CF_CLUSTER_LOCAL_PATH="/afs/cern.ch/user/$CF_CERN_USER_FIRSTCHAR/$CF_CERN_USER/HHMultilepton_Run3"  # work area on AFS while the clone itself lives on EOS
+        export CF_WLCG_CACHE_ROOT="$TMPDIR/cf_wlcg_cache"  # Keep the wlcg cache out of AFS
     else
         export WLCG_FILE_SYSTEM="wlcg_fs_cernbox"
         export CF_CRAB_STORAGE_ELEMENT="T2_CH_CERN"

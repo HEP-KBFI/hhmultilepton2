@@ -5,15 +5,15 @@ export MVA_FEATURE_DEBUG=1
 
 #task=cf.GetDatasetLFNs
 #task=cf.CalibrateEvents
-#task=cf.SelectEvents
+task=cf.SelectEvents
 #task=cf.ReduceEvents
 #task=cf.ProduceColumns
-task=cf.CreateYieldTable
+#task=cf.CreateYieldTable
 #task=cf.PlotVariables1D
 
-version=test_$(date +%Y-%m-%d)
+version=matheus_new_prod #test_$(date +%Y-%m-%d)
 limit_dataset_files=1   # -1 to process all files
-parallel_jobs=300		
+parallel_jobs=600		
 workflow=local          # choices: local, slurm, htcondor
 producers=default
 selector=default
@@ -24,18 +24,31 @@ variables=nmu
 
 #config=22preEE_v14_private
 #config=22postEE_v14_private
-config=23preBPix_v14_private
+#config=23preBPix_v14_private
 #config=23postBPix_v14_private
 #config=22preEE_v12_central
 #config=22postEE_v12_central
 #config=23preBPix_v12_central
 #config=23postBPix_v12_central
-#config=24_v15_central
+config=24_v15_central
 
 requested_datasets=(
-hh_ggf_htt_hvv_kl1_kt1_powheg
+dy_tautau_m50toinf_2j_amcatnlo
+dy_tautau_m50toinf_1j_amcatnlo
 )
+
 not_now_requested_datasets=(
+dy_tautau_m10to50_powheg
+dy_ee_m10to50_powheg
+dy_ee_m50toinf_0j_amcatnlo
+dy_ee_m50toinf_1j_amcatnlo
+dy_ee_m50toinf_2j_amcatnlo
+dy_mumu_m10to50_powheg
+dy_mumu_m50toinf_0j_amcatnlo
+dy_mumu_m50toinf_1j_amcatnlo
+dy_mumu_m50toinf_2j_amcatnlo
+
+dy_tautau_m50toinf_0j_amcatnlo
 hh_ggf_htt_htt_kl1_kt1_powheg
 qcd_mu_pt30to50_pythia
 qcd_mu_pt50to80_pythia
@@ -94,10 +107,10 @@ for dataset in "${requested_datasets[@]}"; do
         --calibrators "${calibrators}" \
         --retries 1 \
         --workers 1 \
-        --clear-logs \
-        --cleanup-jobs \
         ${plus_args} \
         "$@"
+        #--clear-logs \
+        #--cleanup-jobs \
     set +x
 done
 
