@@ -62,7 +62,6 @@ years:
   2024:
     run: 3
     campaigns: [""]
-    # luminosity: 1090.08  # pb
     luminosity: 109008.0  # pb
     luminosity-error: 0.013
     luminosity-uncertainties:
@@ -72,7 +71,7 @@ years:
   2025:
     run: 3
     campaigns: [""]
-    luminosity: 1090.08  # pb
+    luminosity: 110730.0  # pb #FIXME not sure
     luminosity-error: 0.013
     luminosity-uncertainties:
       - lumi_13p6TeV_correlated: 0.013
@@ -230,17 +229,25 @@ datasets:
     dy:
       tag: ["dy"]
       color: "#3f90da" # bright_blue
-      label: 
+      label:
       cmsdb: 
+        - dy_tautau_m10to50_powheg
+        - dy_tautau_m50toinf_amcatnlo
+        - dy_tautau_m50toinf_0j_amcatnlo
+        - dy_tautau_m50toinf_1j_amcatnlo
+        - dy_tautau_m50toinf_2j_amcatnlo
+        - dy_ee_m10to50_powheg
+        - dy_ee_m50toinf_amcatnlo
+        - dy_ee_m50toinf_0j_amcatnlo
+        - dy_ee_m50toinf_1j_amcatnlo
+        - dy_ee_m50toinf_2j_amcatnlo
+        - dy_mumu_m10to50_powheg
+        - dy_mumu_m50toinf_amcatnlo
+        - dy_mumu_m50toinf_0j_amcatnlo
+        - dy_mumu_m50toinf_1j_amcatnlo
+        - dy_mumu_m50toinf_2j_amcatnlo
         - dy_m4to10_amcatnlo
         - dy_m10to50_amcatnlo
-        # - dy_mumu_m800to1500_powheg
-        - dy_mumu_m50toinf_amcatnlo
-        - dy_ee_m50toinf_amcatnlo
-        - dy_tautau_m50toinf_amcatnlo
-        - dy_ee_m10to50_powheg      # 2024: low-mass DY only per flavour
-        - dy_mumu_m10to50_powheg
-        - dy_tautau_m10to50_powheg
         - dy_m50toinf_0j_amcatnlo
         - dy_m50toinf_1j_amcatnlo
         - dy_m50toinf_2j_amcatnlo

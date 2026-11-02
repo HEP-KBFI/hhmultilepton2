@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-export MVA_FEATURE_DEBUG=1
+export MVA_FEATURE_DEBUG=0
 #export MVA_ZERO_JETPTRELV2=1
 
 #task=cf.GetDatasetLFNs
@@ -33,12 +33,10 @@ variables=nmu
 config=24_v15_central
 
 requested_datasets=(
-dy_tautau_m50toinf_2j_amcatnlo
-dy_tautau_m50toinf_1j_amcatnlo
-)
-
-not_now_requested_datasets=(
 dy_tautau_m10to50_powheg
+dy_tautau_m50toinf_0j_amcatnlo
+dy_tautau_m50toinf_1j_amcatnlo
+dy_tautau_m50toinf_2j_amcatnlo
 dy_ee_m10to50_powheg
 dy_ee_m50toinf_0j_amcatnlo
 dy_ee_m50toinf_1j_amcatnlo
@@ -47,8 +45,9 @@ dy_mumu_m10to50_powheg
 dy_mumu_m50toinf_0j_amcatnlo
 dy_mumu_m50toinf_1j_amcatnlo
 dy_mumu_m50toinf_2j_amcatnlo
+)
 
-dy_tautau_m50toinf_0j_amcatnlo
+not_now_requested_datasets=(
 hh_ggf_htt_htt_kl1_kt1_powheg
 qcd_mu_pt30to50_pythia
 qcd_mu_pt50to80_pythia
