@@ -8,13 +8,16 @@
 #   squeue -u kjaffel -h -o "%T %r" | sort | uniq -c
 #
 # Snapshot without running anything:  add  --print-status 2  to a law command.
+#
+# Smoke test BEFORE the full submission (ONE slurm job, then stops; see tests/canary_slurm.sh):
+#   CANARY=1 bash run_multilepton.sh
 # =====================================================================
 
 # ---------------- what to run ----------------
 task=cf.SelectEvents        # cf.CalibrateEvents | cf.SelectEvents | cf.ReduceEvents | cf.ProduceColumns
                             #   | cf.CreateYieldTable | cf.PlotVariables1D
 config=24_v15_central
-version=matheus_new_prod_ext2
+version=matheus_new_prod_ext1
 workflow=slurm              # slurm | local | htcondor
 selector=default
 calibrators=default
@@ -34,7 +37,7 @@ mode="${MODE:-wrapper}"
 # ---------------- speed / scheduling ----------------
 tasks_per_job=1             # 1 ROOT file per job: fast + never times out (10/job TIMED OUT on low-mass DY)
 parallel_jobs=300            # max concurrent jobs PER DATASET (NOT global, see note) -- low to coexist with bamboo
-poll_interval=120           # seconds between status prints (less log spam)
+poll_interval=2              # MINUTES between status polls (law unit is minutes; also how often the next batch under --parallel-jobs gets submitted)
 
 # ---------------- plotting / yield only ----------------
 categories=c4mu,c3mu1tau,c2mu2tau
@@ -57,6 +60,17 @@ requested_datasets=(
 )
 
 datasets_csv=$(IFS=,; echo "${requested_datasets[*]}")
+
+# forked luigi tasks deadlock on xrootd with XRD_RUNFORKHANDLER=0 (setup.sh default): slurm jobs then
+# freeze right after "running cf.X(branch=N)". .setups/dev.sh exports 1 for manivald.
+if [[ "$workflow" == slurm && "${XRD_RUNFORKHANDLER:-0}" != 1 ]]; then
+    echo "WARNING: XRD_RUNFORKHANDLER=${XRD_RUNFORKHANDLER:-unset}, slurm jobs will most likely hang (export XRD_RUNFORKHANDLER=1)"
+fi
+
+# tests/canary_slurm.sh sources everything above and stops here
+[[ -n "${RUN_MULTILEPTON_SETTINGS_ONLY:-}" ]] && return 0
+
+[[ "${CANARY:-0}" == 1 ]] && exec bash "$(dirname "${BASH_SOURCE[0]}")/tests/canary_slurm.sh" "$@"
 
 # ===================================================================
 # Aggregation tasks (yield table / plots) combine all datasets in one call

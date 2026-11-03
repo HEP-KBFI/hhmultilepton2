@@ -24,13 +24,22 @@ export WLCG_REMOTE_SETUP_FORCE="false"
 if [ "$cluster" = "manivald" ]; then
     export OPENBLAS_NUM_THREADS=2
     export WLCG_FILE_SYSTEM="wlcg_fs_manivald"
+    export MULTILEPTON_LFN_SOURCES="wlcg_fs_global_redirector, wlcg_fs_infn_redirector, wlcg_fs_desy_store"
+    export MULTILEPTON_WLCG_RETRIES="3"
+    export MULTILEPTON_WLCG_RETRY_DELAY="30s"
+    # luigi forks the task process after the parent already used XrdCl (store stat in complete()).
+    # With setup.sh default XRD_RUNFORKHANDLER=0 the forked child deadlocks forever in
+    # XrdCl::FileSystem::Stat, so slurm jobs freeze right after "running cf.X(branch=N)".
+    # =1 re-inits XrdCl in the child (verified: 1-branch CalibrateEvents job completes in 3 min).
+    # Exported here so sbatch forwards it into the jobs (setup.sh only defaults it via ":-0").
+    export XRD_RUNFORKHANDLER="1"
     export CF_CRAB_STORAGE_ELEMENT="T2_EE_Estonia"
     export CF_CRAB_SANDBOX_NAME="CMSSW_10_6_18::arch=slc7_amd64_gcc700"
     export CF_SLURM_FLAVOR="manivald"
     export CF_SLURM_PARTITION="main"
     export CF_SLURM_CPUS=4
-    export CF_SLURM_RUNTIME=20h
-    export CF_SLURM_MEM_PER_CPU=8GB
+    export CF_SLURM_RUNTIME=6h
+    export CF_SLURM_MEM_PER_CPU=4GB
     export CF_CLUSTER_LOCAL_PATH="/local/$CF_CERN_USER/HHMultilepton_Run3/"
     export CF_WLCG_CACHE_ROOT="$CF_CLUSTER_LOCAL_PATH/cf_scratch"
     export TMPDIR="/scratch/local/$CF_CERN_USER"
