@@ -113,14 +113,16 @@ setup_multilepton() {
     local cf_slurm_partition_default="main"
     local cf_slurm_cpus_default=1
     local cf_slurm_mem_per_cpu_default=2GB
-
+    local remote_lcg_setup_force=false
     local hname="$( hostname 2> /dev/null )"
+    
     if [ "$?" = "0" ]; then
         # lxplus
         if [[ "${hname}" == lx*.cern.ch ]]; then
             cf_htcondor_flavor_default="cern"
         fi
     fi
+    
     export CF_HTCONDOR_FLAVOR="${CF_HTCONDOR_FLAVOR:-${cf_htcondor_flavor_default}}"
     export CF_HTCONDOR_MEMORY=${CF_HTCONDOR_MEMORY:-${cf_htcondor_memory_default}}
     export CF_HTCONDOR_DISK=${CF_HTCONDOR_DISK:-${cf_htcondor_disk_default}}
@@ -130,6 +132,8 @@ setup_multilepton() {
     export CF_SLURM_PARTITION="${CF_SLURM_PARTITION:-${cf_slurm_partition_default}}"
     export CF_SLURM_CPUS="${CF_SLURM_CPUS:-${cf_slurm_cpus_default}}"
     export CF_SLURM_MEM_PER_CPU="${CF_SLURM_MEM_PER_CPU:-${cf_slurm_mem_per_cpu_default}}"
+    export WLCG_REMOTE_SETUP_FORCE="${WLCG_REMOTE_SETUP_FORCE:-${remote_lcg_setup_force}}"
+    
     # interactive setup
     if ! ${CF_REMOTE_ENV}; then
         cf_setup_interactive_body() {
@@ -188,8 +192,6 @@ setup_multilepton() {
     export MULTILEPTON_RES_CALIBRATE="${MULTILEPTON_RES_CALIBRATE:-}"
     export MULTILEPTON_RES_SELECT="${MULTILEPTON_RES_SELECT:-}"
     export MULTILEPTON_RES_PRODUCE="${MULTILEPTON_RES_PRODUCE:-}"
-
-    # continue the fixed setup
     export CF_CONDA_BASE="${CF_CONDA_BASE:-${CF_SOFTWARE_BASE}/conda}"
     export CF_VENV_BASE="${CF_VENV_BASE:-${CF_SOFTWARE_BASE}/venvs}"
     export CF_CMSSW_BASE="${CF_CMSSW_BASE:-${CF_SOFTWARE_BASE}/cmssw}"
