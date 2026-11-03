@@ -54,7 +54,7 @@ elif [ "$cluster" = "lxplus" ]; then
     export TMPDIR="/tmp/$CF_CERN_USER"
 
     if [ "$MULTILEPTON_CONDOR_SPRACE" = "true" ]; then
-        export MULTILEPTON_LFN_SOURCES="wlcg_fs_global_redirector, wlcg_fs_infn_redirector, wlcg_fs_desy_store"
+        export MULTILEPTON_LFN_SOURCES="wlcg, wlcg_fs_sprace_webdav"
         export MULTILEPTON_WLCG_RETRIES="3"
         export MULTILEPTON_WLCG_RETRY_DELAY="30s"
         export MULTILEPTON_RES_CALIBRATE="htcondor_memory=8.00GB, crab_memory=8000MB"
