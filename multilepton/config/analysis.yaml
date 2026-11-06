@@ -273,6 +273,12 @@ datasets:
         - w_lnu_2j_pt200to400_amcatnlo
         - w_lnu_2j_pt400to600_amcatnlo
         - w_lnu_2j_pt600toinf_amcatnlo
+        # LO MadGraph W+1..4 jets (exclusive in ME partons, 4j inclusive): use as a set on its own,
+        # not together with the amcatnlo 1j/2j pT > 40 GeV bins above
+        - w_lnu_1j_madgraph
+        - w_lnu_2j_madgraph
+        - w_lnu_3j_madgraph
+        - w_lnu_4j_madgraph
         - w_vbf_wlnu_madgraph
         - z_vbf_zll_m50toinf_madgraph
     qcd:
@@ -335,6 +341,10 @@ datasets:
         - h_ggf_hbb_powheg
         - h_vbf_htt_powheg
         - h_vbf_hbb_powheg
+        - h_ggf_hww2l2nu_powheg
+        - h_ggf_hzz4l_powheg
+        - h_vbf_hww2l2nu_powheg
+        - h_vbf_hzz4l_powheg
         - wph_htt_powheg
         - wmh_htt_powheg
         - wph_wqq_hbb_powheg
