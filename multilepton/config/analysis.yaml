@@ -132,14 +132,6 @@ datasets:
         cmsdb:
           - hh_vbf_htt_hvv_kv1_k2v1_kl1_madgraph
           - hh_vbf_htt_hvv_kv1_k2v0_kl1_madgraph
-          - hh_vbf_htt_hvv_kv1p74_k2v1p37_madgraph
-          - hh_vbf_htt_hvv_kvm0p012_k2v0p03_madgraph
-          - hh_vbf_htt_hvv_kvm0p758_k2v1p44_madgraph
-          - hh_vbf_htt_hvv_kvm0p962_k2v0p959_madgraph
-          - hh_vbf_htt_hvv_kvm1p21_k2v1p94_madgraph
-          - hh_vbf_htt_hvv_kvm1p6_k2v2p72_madgraph
-          - hh_vbf_htt_hvv_kvm1p83_k2v3p57_madgraph
-          - hh_vbf_htt_hvv_kvm2p12_k2v3p87_madgraph
           - hh_vbf_htt_hvv_kv1p74_k2v1p37_kl14p4_madgraph
           - hh_vbf_htt_hvv_kvm0p012_k2v0p03_kl10p2_madgraph
           - hh_vbf_htt_hvv_kvm0p758_k2v1p44_klm19p3_madgraph
@@ -147,17 +139,9 @@ datasets:
           - hh_vbf_htt_hvv_kvm1p21_k2v1p94_klm0p94_madgraph
           - hh_vbf_htt_hvv_kvm1p6_k2v2p72_klm1p36_madgraph
           - hh_vbf_htt_hvv_kvm1p83_k2v3p57_klm3p39_madgraph
-          - hh_vbf_htt_hvv_kvm2p12_k2v3p87_klm5p96_madgraph
+          - hh_vbf_htt_hvv_kv2p12_k2v3p87_klm5p96_madgraph  # cmsdb name; the sample is CV = -2.12 (DAS: Par-CV-m2p12-C2V-3p87-C3-m5p96)
           - hh_vbf_htt_htt_kv1_k2v1_kl1_madgraph
           - hh_vbf_htt_htt_kv1_k2v0_kl1_madgraph
-          - hh_vbf_htt_htt_kv1p74_k2v1p37_madgraph
-          - hh_vbf_htt_htt_kvm0p012_k2v0p03_madgraph
-          - hh_vbf_htt_htt_kvm0p758_k2v1p44_madgraph
-          - hh_vbf_htt_htt_kvm0p962_k2v0p959_madgraph
-          - hh_vbf_htt_htt_kvm1p21_k2v1p94_madgraph
-          - hh_vbf_htt_htt_kvm1p6_k2v2p72_madgraph
-          - hh_vbf_htt_htt_kvm1p83_k2v3p57_madgraph
-          - hh_vbf_htt_htt_kvm2p12_k2v3p87_madgraph
           - hh_vbf_htt_htt_kv1p74_k2v1p37_kl14p4_madgraph
           - hh_vbf_htt_htt_kvm0p012_k2v0p03_kl10p2_madgraph
           - hh_vbf_htt_htt_kvm0p758_k2v1p44_klm19p3_madgraph
@@ -165,17 +149,9 @@ datasets:
           - hh_vbf_htt_htt_kvm1p21_k2v1p94_klm0p94_madgraph
           - hh_vbf_htt_htt_kvm1p6_k2v2p72_klm1p36_madgraph
           - hh_vbf_htt_htt_kvm1p83_k2v3p57_klm3p39_madgraph
-          - hh_vbf_htt_htt_kvm2p12_k2v3p87_klm5p96_madgraph
+          - hh_vbf_htt_htt_kv2p12_k2v3p87_klm5p96_madgraph  # cmsdb name; the sample is CV = -2.12 (DAS: Par-CV-m2p12-C2V-3p87-C3-m5p96)
           - hh_vbf_hvv_hvv_2lplus_kv1_k2v1_kl1_madgraph
           - hh_vbf_hvv_hvv_2lplus_kv1_k2v0_kl1_madgraph
-          - hh_vbf_hvv_hvv_2lplus_kv1p74_k2v1p37_madgraph
-          - hh_vbf_hvv_hvv_2lplus_kvm0p012_k2v0p03_madgraph
-          - hh_vbf_hvv_hvv_2lplus_kvm0p758_k2v1p44_madgraph
-          - hh_vbf_hvv_hvv_2lplus_kvm0p962_k2v0p959_madgraph
-          - hh_vbf_hvv_hvv_2lplus_kvm1p21_k2v1p94_madgraph
-          - hh_vbf_hvv_hvv_2lplus_kvm1p6_k2v2p72_madgraph
-          - hh_vbf_hvv_hvv_2lplus_kvm1p83_k2v3p57_madgraph
-          - hh_vbf_hvv_hvv_2lplus_kvm2p12_k2v3p87_madgraph
           - hh_vbf_hvv_hvv_2lplus_kv1p74_k2v1p37_kl14p4_madgraph
           - hh_vbf_hvv_hvv_2lplus_kvm0p012_k2v0p03_kl10p2_madgraph
           - hh_vbf_hvv_hvv_2lplus_kvm0p758_k2v1p44_klm19p3_madgraph
@@ -183,7 +159,7 @@ datasets:
           - hh_vbf_hvv_hvv_2lplus_kvm1p21_k2v1p94_klm0p94_madgraph
           - hh_vbf_hvv_hvv_2lplus_kvm1p6_k2v2p72_klm1p36_madgraph
           - hh_vbf_hvv_hvv_2lplus_kvm1p83_k2v3p57_klm3p39_madgraph
-          - hh_vbf_hvv_hvv_2lplus_kvm2p12_k2v3p87_klm5p96_madgraph
+          - hh_vbf_hvv_hvv_2lplus_kv2p12_k2v3p87_klm5p96_madgraph  # cmsdb name; the sample is CV = -2.12 (DAS: Par-CV-m2p12-C2V-3p87-C3-m5p96)
           - hh_vbf_hww_hzz_3l_kv1_k2v1_kl1_madgraph
           - hh_vbf_hww_hzz_3l_kv1_k2v0_kl1_madgraph
           - hh_vbf_hww_hzz_3l_kv1p74_k2v1p37_kl14p4_madgraph
